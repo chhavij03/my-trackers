@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CA Inter Study Tracker — Final</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #0b0b0d; min-height: 100vh; color: #eee; transition: background 0.3s, color 0.3s; }
+
+  /* ---------- theme toggle ---------- */
+  .theme-toggle { position: absolute; top: 16px; right: 20px; display: flex; align-items: center; gap: 8px; }
+  .theme-toggle button { background: #1a1a1e; border: 1px solid #2a2a2e; color: #eee; border-radius: 999px; padding: 8px 14px; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+  body[data-theme="light"] .theme-toggle button { background: #fff; border-color: #ddd; color: #333; }
+
+  body[data-theme="light"] { background: #f4f4f2; color: #222; }
+  body[data-theme="light"] .topbar { background: #fff; border-bottom: 1px solid #e5e5e0; }
+  body[data-theme="light"] .topbar h1 { color: #1a1a1a; }
+  body[data-theme="light"] .topbar .sub { color: #7a7a75; }
+  body[data-theme="light"] .card { background: #fff; border-color: #e5e5e0; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+  body[data-theme="light"] .card h3 { color: #8a8a80; }
+  body[data-theme="light"] .remain-table td { border-color: #eee; color: #333; }
+  body[data-theme="light"] .remain-table td:last-child { color: #1a1a1a; }
+  body[data-theme="light"] .remain-note { color: #9a9a90; }
+  body[data-theme="light"] .week-bar-label { color: #555; }
+  body[data-theme="light"] .week-bar-outer { background: #eee; }
+  body[data-theme="light"] .daily-bar { background: #eee; }
+  body[data-theme="light"] .daily-bar-day { color: #888; }
+  body[data-theme="light"] .daily-bar-hrs { color: #aaa; }
+  body[data-theme="light"] .alltime-table td { border-color: #eee; color: #333; }
+  body[data-theme="light"] .alltime-bar-mini { background: #eee; }
+  body[data-theme="light"] .switcher button { background: #fff; border-color: #ddd; color: #777; }
+  body[data-theme="light"] .switcher button.active { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
+  body[data-theme="light"] #screen-checklist { background: #f4f4f2; }
+  body[data-theme="light"] .cl-daynav select, body[data-theme="light"] .cl-daynav button { background: #fff; border-color: #ddd; color: #333; }
+  body[data-theme="light"] .cl-target { color: #7a7a75; }
+  body[data-theme="light"] .cl-item { background: #fff; border-color: #e8e8e2; }
+  body[data-theme="light"] .cl-item.revision { background: #f5f0fa; border-color: #c9a8e8; }
+  body[data-theme="light"] .cl-name { color: #222; }
+  body[data-theme="light"] .cl-item.done .cl-name { color: #aaa; }
+  body[data-theme="light"] .cl-meta { color: #999; }
+  body[data-theme="light"] .cl-checkbox { border-color: #ccc; }
+  body[data-theme="light"] .cl-actions button { color: #aaa; }
+  body[data-theme="light"] .cl-add-form select, body[data-theme="light"] .cl-add-form input { background: #fff; border-color: #ddd; color: #333; }
+
+  .topbar { background: #111114; border-bottom: 1px solid #222; padding: 16px 20px; text-align: center; position: relative; }
+  .topbar h1 { margin: 0 0 4px; font-size: 20px; color: #fff; }
+  .topbar .sub { font-size: 12.5px; color: #9a9aa2; }
+
+  .hours-wrap { max-width: 820px; margin: 0 auto; padding: 20px; }
+  .hw-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  @media (max-width: 700px) { .hw-grid { grid-template-columns: 1fr; } }
+  .card { background: #16161a; border: 1px solid #262630; border-radius: 12px; padding: 18px; }
+  .card h3 { margin: 0 0 12px; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: #8a8a95; }
+
+  .timer-display { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 40px; text-align: center; color: #6fe0a8; margin: 6px 0 14px; letter-spacing: 1px; }
+  .timer-btns { display: flex; gap: 8px; justify-content: center; }
+  .timer-btns button { flex: 1; padding: 10px; border-radius: 8px; border: none; font-weight: 600; font-size: 13px; cursor: pointer; }
+  .btn-start { background: #4ecdc4; color: #06201d; }
+  .btn-pause { background: #f0c866; color: #3a2900; }
+  .btn-stop { background: #ff6b6b; color: #2e0a0a; }
+  .timer-today { text-align: center; font-size: 12px; color: #9a9aa2; margin-top: 10px; }
+
+  .remain-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .remain-table td { padding: 7px 4px; border-bottom: 1px solid #232330; }
+  .remain-table td:last-child { text-align: right; font-weight: 600; color: #eee; }
+  .remain-table tr.total td { border-top: 2px solid #333; border-bottom: none; padding-top: 10px; font-weight: 700; color: #6fe0a8; }
+  .remain-note { font-size: 10.5px; color: #6a6a75; margin-top: 8px; }
+
+  .week-bar-row { margin-bottom: 10px; }
+  .week-bar-label { display: flex; justify-content: space-between; font-size: 12px; color: #b0b0ba; margin-bottom: 5px; }
+  .week-bar-outer { height: 10px; background: #232330; border-radius: 999px; overflow: hidden; }
+  .week-bar-inner { height: 100%; background: linear-gradient(90deg,#4ecdc4,#6fe0a8); border-radius: 999px; }
+
+  .daily-chart { display: flex; align-items: flex-end; gap: 8px; height: 90px; margin-top: 10px; }
+  .daily-bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
+  .daily-bar { width: 100%; background: #232330; border-radius: 4px 4px 0 0; position: relative; min-height: 2px; height:100%; }
+  .daily-bar-fill { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(180deg,#6fe0a8,#4ecdc4); border-radius: 4px 4px 0 0; }
+  .daily-bar-day { font-size: 9.5px; color: #7a7a85; margin-top: 5px; }
+  .daily-bar-hrs { font-size: 9px; color: #6a6a75; margin-top: 2px; }
+
+  .alltime-table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 4px; }
+  .alltime-table td { padding: 6px 4px; border-bottom: 1px solid #232330; }
+  .alltime-table td:last-child, .alltime-table td:nth-child(2) { text-align: right; }
+  .alltime-bar-mini { display:inline-block; height:6px; background:#232330; border-radius:3px; width:60px; vertical-align:middle; margin-right:6px; overflow:hidden; }
+  .alltime-bar-mini-fill { height:100%; background:#6fe0a8; }
+
+  .switcher { display: flex; gap: 6px; padding: 0 20px 16px; max-width: 820px; margin: 0 auto; flex-wrap: wrap; }
+  .switcher button { flex: 1; min-width:120px; padding: 10px 14px; border-radius: 8px; border: 1px solid #2a2a2e; background: #1a1a1e; color: #9a9aa2; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .switcher button.active { background: #eaeaea; color: #111; border-color: #eaeaea; }
+
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* RPG */
+  #screen-rpg { background: radial-gradient(circle at 20% 10%, rgba(232,184,75,0.08), transparent 40%), #16121f; padding: 30px 20px 70px; }
+  .rpg-wrap { max-width: 780px; margin: 0 auto; }
+  .rpg-header { text-align: center; margin-bottom: 26px; }
+  .rpg-title { font-family: Georgia, serif; font-size: 26px; letter-spacing: 1.5px; text-transform: uppercase; color: #f0c866; text-shadow: 0 0 18px rgba(240,200,102,0.35); margin: 0 0 6px; }
+  .rpg-sub { color: #9d8fae; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; }
+  .rpg-card { background: linear-gradient(180deg, #241d33, #1b1526); border: 1px solid #3c2f52; border-radius: 14px; padding: 20px 22px; margin-bottom: 18px; }
+  .rpg-levelrow { display: flex; align-items: center; gap: 16px; }
+  .rpg-badge { width: 58px; height: 58px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #ffe8ad, #e8b84b 60%, #a9791f); display: flex; align-items: center; justify-content: center; font-family: Georgia, serif; font-weight: bold; font-size: 20px; color: #3a2900; flex-shrink: 0; }
+  .rpg-levelinfo .name { font-size: 16px; font-weight: 600; color: #f4ecd8; }
+  .rpg-levelinfo .rank { font-size: 11.5px; color: #9d8fae; margin-top: 2px; }
+  .xp-bar-outer { margin-top: 12px; height: 14px; background: #120e1c; border-radius: 999px; border: 1px solid #3c2f52; overflow: hidden; }
+  .xp-bar-inner { height: 100%; background: linear-gradient(90deg, #4ecdc4, #6fe0a8); border-radius: 999px; }
+  .xp-label { display: flex; justify-content: space-between; font-size: 10.5px; color: #b7a9c6; margin-top: 6px; }
+  .rpg-section-title { font-family: Georgia, serif; color: #f0c866; font-size: 14px; letter-spacing: 1px; text-transform: uppercase; margin: 24px 0 10px 4px; }
+  .quest { display: flex; align-items: center; gap: 14px; background: #1e1830; border: 1px solid #362a4e; border-radius: 10px; padding: 13px 15px; margin-bottom: 9px; }
+  .quest.current { border-color: #6fe0a8; }
+  .quest.done { opacity: 0.55; }
+  .quest.done .quest-name { text-decoration: line-through; }
+  .quest.boss { border-color: #e8b84b; background: linear-gradient(180deg, #2b1f1a, #221715); }
+  .quest-icon { width: 26px; height: 26px; border-radius: 6px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; background: #120e1c; border: 2px solid #6a5a88; }
+  .quest.done .quest-icon { background: #6fe0a8; border-color: #6fe0a8; color: #0c1f18; }
+  .quest.current .quest-icon { border-color: #6fe0a8; color: #6fe0a8; }
+  .quest-body { flex: 1; }
+  .quest-name { font-size: 14px; color: #f0e9d8; font-weight: 600; }
+  .quest-meta { font-size: 11px; color: #9d8fae; margin-top: 2px; }
+  .quest-xp { font-family: Georgia, serif; font-size: 11.5px; font-weight: bold; color: #f0c866; background: #16121f; border: 1px solid #e8b84b55; padding: 4px 9px; border-radius: 999px; flex-shrink: 0; white-space: nowrap; }
+
+  /* Quest Map */
+  #screen-map { background: #FFF8ED; color: #2E2A26; padding: 30px 20px 70px; }
+  .map-wrap { max-width: 640px; margin: 0 auto; }
+  .map-title { font-family: 'Trebuchet MS', sans-serif; font-weight: 800; font-size: 26px; text-align: center; color: #FF6B6B; margin: 0 0 4px; -webkit-text-stroke: 0.5px #2E2A26; }
+  .map-sub { text-align: center; color: #9b8f7f; font-size: 13px; margin-bottom: 30px; font-weight: 600; }
+  .map-stage { position: relative; display: flex; align-items: center; gap: 14px; margin-bottom: 34px; }
+  .map-stage:nth-child(even) { flex-direction: row-reverse; text-align: right; }
+  .map-node { width: 52px; height: 52px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: 800; color: #fff; border: 4px solid #FFF8ED; box-shadow: 0 6px 14px rgba(0,0,0,0.15); }
+  .map-stage:nth-child(4n+1) .map-node { background: #FF6B6B; }
+  .map-stage:nth-child(4n+2) .map-node { background: #4ECDC4; }
+  .map-stage:nth-child(4n+3) .map-node { background: #FFD93D; color: #2E2A26; }
+  .map-stage:nth-child(4n+4) .map-node { background: #9B5DE5; }
+  .map-stage.boss .map-node { background: #2E2A26; font-size: 20px; }
+  .map-stage.done .map-node { opacity: 0.5; }
+  .map-stage.current .map-node { animation: bounce 1.4s infinite; box-shadow: 0 0 0 6px rgba(255,107,107,0.25); }
+  @keyframes bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+  .map-card { background: #fff; border: 2.5px solid #2E2A26; border-radius: 16px; padding: 11px 15px; flex: 1; box-shadow: 4px 4px 0 #2E2A26; }
+  .map-stage.boss .map-card { background: #FFF3D6; }
+  .map-stage.done .map-card { opacity: 0.6; }
+  .map-stage-name { font-weight: 800; font-size: 13.5px; margin-bottom: 3px; }
+  .map-stage-meta { font-size: 10.5px; color: #9b8f7f; font-weight: 600; }
+  .map-stage-hrs { font-size: 10.5px; color: #FF6B6B; font-weight: 800; margin-top: 2px; }
+
+  /* Daily Checklist */
+  #screen-checklist { background: #0f0f13; padding: 24px 20px 80px; }
+  .cl-wrap { max-width: 680px; margin: 0 auto; }
+  .cl-daynav { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .cl-daynav select { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #2a2a2e; background: #1a1a1e; color: #eee; font-size: 14px; }
+  .cl-daynav button { padding: 10px 14px; border-radius: 8px; border: 1px solid #2a2a2e; background: #1a1a1e; color: #eee; cursor: pointer; font-size: 14px; }
+  .cl-target { font-size: 12px; color: #8a8a95; margin: 8px 0 16px; }
+  .cl-progress { font-size: 13px; color: #6fe0a8; font-weight: 700; margin-bottom: 14px; }
+  .cl-complete-banner { background: linear-gradient(90deg,#4ecdc4,#6fe0a8); color: #06201d; text-align: center; font-weight: 800; padding: 12px; border-radius: 10px; margin-bottom: 14px; animation: pulse 1.2s ease; }
+  @keyframes pulse { 0% { transform: scale(0.9); opacity:0; } 60% { transform: scale(1.03); } 100% { transform: scale(1); opacity:1; } }
+
+  .cl-item { display: flex; align-items: center; gap: 12px; background: #17171c; border: 1px solid #262630; border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; position: relative; overflow: hidden; }
+  .cl-item.revision { border-color: #9B5DE5; background: #1a1524; }
+  .cl-checkbox { width: 24px; height: 24px; border-radius: 6px; border: 2px solid #4a4a55; flex-shrink: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; color: transparent; transition: all 0.2s; }
+  .cl-item.done .cl-checkbox { background: #6fe0a8; border-color: #6fe0a8; color: #06201d; transform: scale(1.1); }
+  .cl-checkbox.pop { animation: checkpop 0.4s ease; }
+  @keyframes checkpop { 0% { transform: scale(1); } 40% { transform: scale(1.35); } 100% { transform: scale(1.1); } }
+  .cl-body { flex: 1; min-width: 0; }
+  .cl-name { font-size: 13.5px; color: #eee; font-weight: 600; }
+  .cl-item.done .cl-name { text-decoration: line-through; color: #7a7a85; }
+  .cl-meta { font-size: 11px; color: #8a8a95; margin-top: 2px; }
+  .cl-tag { font-size: 9.5px; font-weight: 700; padding: 2px 7px; border-radius: 999px; background: #262630; color: #9a9aa2; margin-right: 6px; }
+  .cl-tag.audit { background: #3a2a44; color: #c9a8e8; }
+  .cl-tag.fm { background: #1e3a34; color: #6fe0a8; }
+  .cl-tag.sm { background: #3a2e1a; color: #f0c866; }
+  .cl-tag.revision { background: #2a1a3a; color: #c9a8e8; }
+  .cl-actions { display: flex; gap: 6px; flex-shrink: 0; }
+  .cl-actions button { background: none; border: none; color: #6a6a75; cursor: pointer; font-size: 14px; padding: 4px; }
+  .cl-actions button:hover { color: #eee; }
+  .floatplus { position: absolute; right: 50px; top: 8px; color: #6fe0a8; font-weight: 800; font-size: 13px; opacity: 0; pointer-events: none; }
+  .floatplus.show { animation: floatup 0.9s ease forwards; }
+  @keyframes floatup { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-24px); } }
+
+  .cl-add-form { display: flex; gap: 6px; margin-top: 14px; flex-wrap: wrap; }
+  .cl-add-form select, .cl-add-form input { padding: 9px; border-radius: 8px; border: 1px solid #2a2a2e; background: #1a1a1e; color: #eee; font-size: 12.5px; }
+  .cl-add-form input[type=text] { flex: 1; min-width: 140px; }
+  .cl-add-form input[type=number] { width: 70px; }
+  .cl-add-form button { padding: 9px 14px; border-radius: 8px; border: none; background: #4ecdc4; color: #06201d; font-weight: 700; cursor: pointer; font-size: 12.5px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="theme-toggle">
+    <button id="theme-btn">🌙 Dark</button>
+    <button id="export-btn" title="Download a backup of your data">💾 Export</button>
+    <button id="import-btn" title="Restore data from a backup file">⬆️ Restore</button>
+    <input type="file" id="import-file" accept="application/json" style="display:none">
+  </div>
+  <h1>CA Inter Group 2 — Sep 2026 Battle Plan</h1>
+  <div class="sub" id="countdown-line">loading countdown…</div>
+</div>
+
+<div class="hours-wrap">
+  <div class="hw-grid">
+    <div class="card">
+      <h3>Study Timer</h3>
+      <div class="timer-display" id="timer-display">00:00:00</div>
+      <div class="timer-btns">
+        <button class="btn-start" id="btn-start">▶ Start</button>
+        <button class="btn-pause" id="btn-pause">⏸ Pause</button>
+        <button class="btn-stop" id="btn-stop">⏹ Log &amp; Reset</button>
+      </div>
+      <div class="timer-today" id="today-logged">Today logged: 0h 0m</div>
+    </div>
+    <div class="card">
+      <h3>Time Remaining</h3>
+      <table class="remain-table">
+        <tr><td>Audit — 39 items left</td><td>128h 25m</td></tr>
+        <tr><td>FM — 20 lectures left</td><td>47h 12m</td></tr>
+        <tr><td>SM — 8 videos left</td><td>~8h</td></tr>
+        <tr class="total"><td>Total remaining</td><td id="total-remaining">183h 37m</td></tr>
+      </table>
+      <div class="remain-note">SM figure is an estimate — send exact durations to lock this in.</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px;">
+    <h3>This Week's Progress</h3>
+    <div class="week-bar-row">
+      <div class="week-bar-label"><span id="week-label">loading…</span><span id="week-logged">0h logged</span></div>
+      <div class="week-bar-outer"><div class="week-bar-inner" id="week-bar-fill" style="width:0%"></div></div>
+    </div>
+    <div class="daily-chart" id="daily-chart"></div>
+  </div>
+
+  <div class="card">
+    <h3>All-Time Weekly Totals</h3>
+    <table class="alltime-table" id="alltime-table"></table>
+  </div>
+</div>
+
+<div class="switcher">
+  <button class="active" data-target="screen-rpg">🗡 RPG</button>
+  <button data-target="screen-map">🎨 Quest Map</button>
+  <button data-target="screen-checklist">📅 Daily Checklist</button>
+</div>
+
+<!-- RPG -->
+<section id="screen-rpg" class="screen active">
+  <div class="rpg-wrap">
+    <div class="rpg-header">
+      <div class="rpg-title">The CA Inter Campaign</div>
+      <div class="rpg-sub" id="rpg-sub">183h 37m left · 30 days to Audit exam</div>
+    </div>
+    <div class="rpg-card">
+      <div class="rpg-levelrow">
+        <div class="rpg-badge" id="rpg-level">1</div>
+        <div class="rpg-levelinfo">
+          <div class="name">Total Progress</div>
+          <div class="rank" id="rpg-rank">0h of 183.6h logged</div>
+        </div>
+      </div>
+      <div class="xp-bar-outer"><div class="xp-bar-inner" id="rpg-xp-bar" style="width:0%"></div></div>
+      <div class="xp-label"><span id="rpg-xp-text">0 XP</span><span id="rpg-xp-next">1836 XP to fully clear syllabus</span></div>
+    </div>
+    <div class="rpg-section-title">⚔ Campaign Phases</div>
+    <div id="rpg-quests"></div>
+  </div>
+</section>
+
+<!-- QUEST MAP -->
+<section id="screen-map" class="screen">
+  <div class="map-wrap">
+    <div class="map-title">Road to Sep 10 🚀</div>
+    <div class="map-sub">CA Inter Group 2 — Audit, FM &amp; SM</div>
+    <div id="map-stages"></div>
+  </div>
+</section>
+
+<!-- DAILY CHECKLIST -->
+<section id="screen-checklist" class="screen">
+  <div class="cl-wrap">
+    <div class="cl-daynav">
+      <button id="cl-prev">←</button>
+      <select id="cl-date-select"></select>
+      <button id="cl-next">→</button>
+    </div>
+    <div class="cl-target" id="cl-target-line"></div>
+    <div class="cl-progress" id="cl-progress-line"></div>
+    <div id="cl-banner"></div>
+    <div id="cl-items"></div>
+    <div class="cl-add-form">
+      <select id="cl-add-subject">
+        <option value="audit">Audit</option>
+        <option value="fm">FM</option>
+        <option value="sm">SM</option>
+        <option value="other">Other</option>
+      </select>
+      <input type="text" id="cl-add-text" placeholder="Lecture / task name">
+      <input type="number" id="cl-add-hrs" placeholder="hrs" step="0.25" min="0">
+      <button id="cl-add-btn">+ Add</button>
+    </div>
+  </div>
+</section>
+
+<script>
+// ================= REAL REMAINING CONTENT =================
+const auditQueue = [
+["18B","Chapter 1 (cont.)",1.77],["19A","Chapter 1",1.76],["19B","Chapter 1",1.80],["19C","Chapter 1",1.55],
+["20A","Chapter 11",1.77],["20B","Chapter 11",1.74],["21A","Chapter 11",1.70],["21B","Chapter 11",1.72],
+["22A","Chapter 11",1.68],["22B","Chapter 11",1.67],["23A","Chapter 11",1.77],["23B","Chapter 11",1.55],
+["24A","SA 510",1.80],["24B","SA 510 & SA 520",1.76],["25A","SA 520",1.58],["25B","SA 520",1.80],
+["26A","Chapter 5",1.76],["26B","Chapter 5",1.85],["27A","Chapter 5",1.29],["27B","Chapter 5",2.05],
+["28A","Chapter 5",2.16],["28B","Chapter 5",2.12],["29A","Chapter 5",2.06],["29B","Chapter 5",1.99],
+["30A","SA 580",1.83],["30B","SA 580",1.96],["31A","SA 501",1.92],["31B","SA 501",1.47],["31C","SA 500",0.52],
+["32A","SA 500",2.10],["32B","SA 500",0.96],["33A","SA 330",1.43],["33B","SA 260",2.33],
+["34A","Chapter 9",1.72],["34B","Chapter 9",2.12],["35","Chapter 9",2.36],["36","Chapter 9",2.41],
+["37","Chapter 9",1.86],["38","Chapter 9",2.35],["39A","SA 320",2.32],["39B","SA 320 & SA 450",2.26],
+["40A","SA 700",2.33],["40B","SA 710",2.31],["41A","SA 710 & SA 600",2.26],["41B","SA 530",2.29],
+["42A","SA 530",2.30],["42B","SA 530",1.83],["43A","SA 530",1.20],["43B","SA 265",1.13],
+["44A","SA 265",1.03],["44B","Chapter 3",1.31],["45A","Chapter 3",2.34],["45B","Chapter 3",1.20],
+["46A","Chapter 3",1.16],["46B","Chapter 3",1.64],["47A","Chapter 3",1.57],["47B","SA 610",1.62],
+["48A","SA 610",1.35],["48B","SA 550",1.33],["49A","Bank Audit",1.52],["49B","Bank Audit",1.55],
+["50A","Bank Audit",1.55],["50B","Bank Audit",1.73],["51A","Bank Audit",1.71],["51B","Bank Audit",2.07],
+["52A","CARO 2020",2.21],["52B","CARO 2020",1.40],["52C","CARO 2020",1.49],
+["B1","Sec.143 (Ch.8)",2.47],["B2","Sec.143 (Ch.8)",2.95],["B3.1","Ch.5 Sch III",1.34],
+["B3.2","Ch.5 Sch III",1.03],["B3.3","Misc Topics",0.60]
+].map(x=>({id:"aud-"+x[0], subject:"audit", name:"Audit "+x[0]+" — "+x[1], hrs:x[2]}));
+
+const fmQueue = [
+["Ch.4 L1","Mgmt of Working Capital",1.48],["Ch.4 L2","Mgmt of Working Capital",2.32],["Ch.4 L3","Mgmt of Working Capital",2.77],
+["Ch.5 L1","Mgmt of Cash",2.93],["Ch.5 L2","Mgmt of Cash",2.10],
+["Ch.6 L1","Ratio Analysis",2.17],["Ch.6 L2","Ratio Analysis",1.22],["Ch.6 L3","Ratio Analysis",2.32],["Ch.6 L4","Ratio Analysis",1.55],
+["Ch.7 L1","Investment Decisions",2.30],["Ch.7 L2","Investment Decisions",3.07],["Ch.7 L3","Investment Decisions",2.33],
+["Ch.7 L4","Investment Decisions",2.77],["Ch.7 L5","Investment Decisions",2.68],["Ch.7 L6","Investment Decisions",2.40],
+["Ch.8 L1","Cost of Capital",3.20],["Ch.8 L2","Cost of Capital",2.52],
+["Ch.9 L1","Capital Structure",2.17],["Ch.9 L2","Capital Structure",2.07],
+["Ch.10 L1","Dividend Decisions",2.85]
+].map(x=>({id:"fm-"+x[0], subject:"fm", name:"FM "+x[0]+" — "+x[1], hrs:x[2]}));
+
+const smQueue = [
+["Ch.2 V1",1],["Ch.2 V2",1],["Ch.2 V3",1],["Ch.3 V1",1],["Ch.3 V2",1],["Ch.4 V2",1],["Ch.5 V1",1],["Ch.5 V2",1]
+].map(x=>({id:"sm-"+x[0], subject:"sm", name:"SM "+x[0]+" (revision video)", hrs:x[1]}));
+
+// ================= PHASES =================
+const phases = [
+  { label: "Aug 11–17", start: "2026-08-11", end: "2026-08-17", targetHrs: 56, note: "Front-loaded push", detail: "Audit 18B–23B · FM Ch.4 · SM Ch.2", boss:false },
+  { label: "Aug 18–24", start: "2026-08-18", end: "2026-08-24", targetHrs: 45.5, note: "Standard pace", detail: "Audit 24A–29B · FM Ch.5–6 · SM Ch.3", boss:false },
+  { label: "Aug 25–31", start: "2026-08-25", end: "2026-08-31", targetHrs: 21, note: "Lighter — travel week", detail: "Audit light catch-up · SM Ch.4/5 (portable)", boss:false },
+  { label: "Sep 1–6", start: "2026-09-01", end: "2026-09-06", targetHrs: 61.1, note: "Heaviest — final content push", detail: "Audit 30A–52C + bonus · FM Ch.7–10", boss:false },
+  { label: "Sep 7–9", start: "2026-09-07", end: "2026-09-09", targetHrs: 0, note: "Final Push — Audit revision", detail: "Revision + mock + CARO recap. No new content.", boss:false },
+  { label: "Sep 10", start: "2026-09-10", end: "2026-09-10", targetHrs: 0, note: "AUDIT & ETHICS EXAM", detail: "Boss battle #1", boss:true },
+  { label: "Sep 11", start: "2026-09-11", end: "2026-09-11", targetHrs: 0, note: "FM + SM final revision", detail: "Formula recap + SM keywords + mock", boss:false },
+  { label: "Sep 12", start: "2026-09-12", end: "2026-09-12", targetHrs: 0, note: "FM & SM EXAM", detail: "Boss battle #2", boss:true }
+];
+const TOTAL_REMAINING_HRS = 183.6;
+
+function addDays(dateStr,n){ const d=new Date(dateStr+"T00:00:00"); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); }
+function daysBetweenInclusive(a,b){ return Math.round((new Date(b)-new Date(a))/86400000)+1; }
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function phaseFor(dateStr){ return phases.find(p=>dateStr>=p.start&&dateStr<=p.end); }
+function phaseStatus(p){ const t=todayStr(); if(t>p.end) return "done"; if(t>=p.start&&t<=p.end) return "current"; return "upcoming"; }
+function isWeekend(dateStr){ const d=new Date(dateStr+"T00:00:00").getDay(); return d===0||d===6; }
+
+function dailyTargetHrs(dateStr){
+  if(dateStr==="2026-08-11") return null;
+  const phase = phaseFor(dateStr);
+  if(!phase || phase.targetHrs===0) return 0;
+  if(phase.start==="2026-08-11"){
+    const day1Hrs = auditQueue[0].hrs + auditQueue[1].hrs;
+    const remainDays = daysBetweenInclusive(phase.start,phase.end)-1;
+    return (phase.targetHrs-day1Hrs)/remainDays;
+  }
+  return phase.targetHrs/daysBetweenInclusive(phase.start,phase.end);
+}
+
+// ================= SCHEDULE GENERATION =================
+const CONTENT_START="2026-08-11", CONTENT_END="2026-09-06";
+function generateSchedule(){
+  const aQ=[...auditQueue], fQ=[...fmQueue], sQ=[...smQueue];
+  const schedule = {};
+  let cursor = CONTENT_START;
+  let first = true;
+  while(cursor <= CONTENT_END){
+    let items = [];
+    if(first){
+      items.push(aQ.shift()); items.push(aQ.shift());
+      schedule[cursor] = { targetHrs: items.reduce((a,b)=>a+b.hrs,0), items };
+      first = false; cursor = addDays(cursor,1); continue;
+    }
+    const target = dailyTargetHrs(cursor) || 0;
+    let remaining = target;
+    const order = isWeekend(cursor) ? [sQ,aQ,fQ] : [aQ,fQ,sQ];
+    let guard = 0;
+    while(remaining > 0.2 && guard < 20){
+      guard++;
+      let picked=false;
+      for(const q of order){
+        if(q.length && q[0].hrs <= remaining+0.6){
+          items.push(q.shift()); remaining -= items[items.length-1].hrs; picked=true; break;
+        }
+      }
+      if(!picked) break;
+    }
+    schedule[cursor] = { targetHrs: target, items };
+    cursor = addDays(cursor,1);
+  }
+  return schedule;
+}
+const BASE_SCHEDULE = generateSchedule();
+
+function revisionLabel(dateStr){
+  const prev = addDays(dateStr,-1);
+  const prevDay = BASE_SCHEDULE[prev];
+  if(!prevDay || !prevDay.items.length) return "Revise: earlier topics + quick recall";
+  const counts = {};
+  prevDay.items.forEach(it=>{ counts[it.subject]=(counts[it.subject]||0)+1; });
+  const parts = Object.keys(counts).map(k=>k.toUpperCase()+" ×"+counts[k]);
+  return "Revise yesterday: " + parts.join(", ");
+}
+
+// ================= STORAGE =================
+// Uses localStorage — this file is viewed in Safari (mobile app doesn't render
+// HTML inline), so this is the storage that actually persists for you.
+let memoryStore = {};
+const STORAGE_PREFIX = "ca-inter-tracker:";
+async function storeGet(key){
+  try {
+    const raw = localStorage.getItem(STORAGE_PREFIX+key);
+    return raw ? JSON.parse(raw) : null;
+  } catch(e){ return memoryStore[key] || null; }
+}
+async function storeSet(key,val){
+  try { localStorage.setItem(STORAGE_PREFIX+key, JSON.stringify(val)); }
+  catch(e){ memoryStore[key]=val; }
+}
+
+// ================= BACKUP / RESTORE =================
+function exportBackup(){
+  const dump = {};
+  for(let i=0;i<localStorage.length;i++){
+    const k = localStorage.key(i);
+    if(k && k.startsWith(STORAGE_PREFIX)) dump[k] = localStorage.getItem(k);
+  }
+  const blob = new Blob([JSON.stringify({app:'ca-inter-tracker', exportedAt:new Date().toISOString(), data:dump}, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `ca-inter-tracker-backup-${todayStr()}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+}
+function importBackup(file){
+  const reader = new FileReader();
+  reader.onload = async ()=>{
+    try{
+      const parsed = JSON.parse(reader.result);
+      const dump = parsed.data || parsed;
+      Object.keys(dump).forEach(k=>{ if(k.startsWith(STORAGE_PREFIX)) localStorage.setItem(k, dump[k]); });
+      await refreshAll();
+      renderChecklist();
+      alert('Backup restored.');
+    }catch(e){ alert('Could not read that backup file.'); }
+  };
+  reader.readAsText(file);
+}
+document.getElementById('export-btn').addEventListener('click', exportBackup);
+document.getElementById('import-btn').addEventListener('click', ()=> document.getElementById('import-file').click());
+document.getElementById('import-file').addEventListener('change', (e)=>{ if(e.target.files[0]) importBackup(e.target.files[0]); });
+
+async function getDayItems(dateStr){
+  const saved = await storeGet('day-items:'+dateStr);
+  if(saved) return saved;
+  const base = BASE_SCHEDULE[dateStr];
+  let items = base ? base.items.map(it=>({...it, done:false})) : [];
+  if(dateStr!=="2026-08-11" && dateStr>=CONTENT_START && dateStr<=CONTENT_END){
+    items.push({ id:"rev-"+dateStr, subject:"revision", name:"1h Active Recall — "+revisionLabel(dateStr), hrs:1, done:false });
+  }
+  await storeSet('day-items:'+dateStr, items);
+  return items;
+}
+async function saveDayItems(dateStr, items){ await storeSet('day-items:'+dateStr, items); }
+
+// ================= TIMER =================
+let timerInterval=null, elapsedMs=0, running=false;
+function fmt(ms){ const s=Math.floor(ms/1000); return String(Math.floor(s/3600)).padStart(2,'0')+":"+String(Math.floor((s%3600)/60)).padStart(2,'0')+":"+String(s%60).padStart(2,'0'); }
+document.getElementById('btn-start').addEventListener('click',()=>{
+  if(running) return; running=true;
+  const startedAt = Date.now()-elapsedMs;
+  timerInterval=setInterval(()=>{ elapsedMs=Date.now()-startedAt; document.getElementById('timer-display').textContent=fmt(elapsedMs); },500);
+});
+document.getElementById('btn-pause').addEventListener('click',()=>{ running=false; clearInterval(timerInterval); });
+document.getElementById('btn-stop').addEventListener('click', async ()=>{
+  running=false; clearInterval(timerInterval);
+  if(elapsedMs>1000){
+    const log = (await storeGet('study-sessions')) || [];
+    log.push({date: todayStr(), minutes: Math.round(elapsedMs/60000)});
+    await storeSet('study-sessions', log);
+    await refreshAll();
+  }
+  elapsedMs=0; document.getElementById('timer-display').textContent="00:00:00";
+});
+
+// ================= RENDER: HOURS / RPG / MAP =================
+function last7Days(){ const days=[]; for(let i=6;i>=0;i--){ days.push(addDays(todayStr(),-i)); } return days; }
+
+async function refreshAll(){
+  const log = (await storeGet('study-sessions')) || [];
+  const today = todayStr();
+  const todayMin = log.filter(s=>s.date===today).reduce((a,b)=>a+b.minutes,0);
+  document.getElementById('today-logged').textContent = `Today logged: ${Math.floor(todayMin/60)}h ${todayMin%60}m`;
+
+  const current = phases.find(p=>phaseStatus(p)==="current") || phases[0];
+  const weekMin = log.filter(s=>s.date>=current.start && s.date<=current.end).reduce((a,b)=>a+b.minutes,0);
+  const weekHrs = weekMin/60;
+  document.getElementById('week-label').textContent = `${current.label} · target ${current.targetHrs}h`;
+  document.getElementById('week-logged').textContent = `${weekHrs.toFixed(1)}h logged`;
+  document.getElementById('week-bar-fill').style.width = (current.targetHrs>0 ? Math.min(100,(weekHrs/current.targetHrs)*100) : 0)+"%";
+
+  const days = last7Days();
+  const dailyTarget = current.targetHrs>0 ? current.targetHrs/daysBetweenInclusive(current.start,current.end) : 4;
+  const chart = document.getElementById('daily-chart'); chart.innerHTML='';
+  days.forEach(d=>{
+    const mins = log.filter(s=>s.date===d).reduce((a,b)=>a+b.minutes,0);
+    const hrs = mins/60;
+    const pctH = Math.min(100,(hrs/Math.max(dailyTarget,1))*100);
+    const col=document.createElement('div'); col.className='daily-bar-col';
+    const dayLabel = new Date(d+"T00:00:00").toLocaleDateString('en-US',{weekday:'short'});
+    col.innerHTML = `<div class="daily-bar"><div class="daily-bar-fill" style="height:${pctH}%"></div></div><div class="daily-bar-day">${dayLabel}</div><div class="daily-bar-hrs">${hrs.toFixed(1)}h</div>`;
+    chart.appendChild(col);
+  });
+
+  const atTable = document.getElementById('alltime-table'); atTable.innerHTML='';
+  phases.forEach(p=>{
+    const mins = log.filter(s=>s.date>=p.start && s.date<=p.end).reduce((a,b)=>a+b.minutes,0);
+    const hrs = mins/60;
+    const pct = p.targetHrs>0 ? Math.min(100,(hrs/p.targetHrs)*100) : (hrs>0?100:0);
+    const row = document.createElement('tr');
+    row.innerHTML = `<td>${p.label}</td><td><span class="alltime-bar-mini"><span class="alltime-bar-mini-fill" style="width:${pct}%"></span></span></td><td>${hrs.toFixed(1)}h / ${p.targetHrs>0?p.targetHrs+'h':'—'}</td>`;
+    atTable.appendChild(row);
+  });
+
+  const totalMin = log.reduce((a,b)=>a+b.minutes,0);
+  const totalHrs = totalMin/60;
+  const xp = Math.round(totalHrs*10), xpGoal = Math.round(TOTAL_REMAINING_HRS*10);
+  const level = Math.max(1, Math.floor(xp/200)+1);
+  document.getElementById('rpg-level').textContent = level;
+  document.getElementById('rpg-rank').textContent = `${totalHrs.toFixed(1)}h of ${TOTAL_REMAINING_HRS}h logged`;
+  document.getElementById('rpg-xp-bar').style.width = Math.min(100,(xp/xpGoal)*100)+"%";
+  document.getElementById('rpg-xp-text').textContent = `${xp} XP`;
+  document.getElementById('rpg-xp-next').textContent = `${xpGoal} XP to fully clear syllabus`;
+  document.getElementById('total-remaining').textContent = totalHrs>0 ? `${Math.max(0,(TOTAL_REMAINING_HRS-totalHrs)).toFixed(1)}h left` : "183h 37m";
+
+  const examAudit = new Date("2026-09-10T00:00:00");
+  const daysLeft = Math.ceil((examAudit-new Date())/86400000);
+  document.getElementById('countdown-line').textContent = `${daysLeft} days to Audit & Ethics · ${daysLeft+2} days to FM & SM`;
+
+  const rpgWrap = document.getElementById('rpg-quests'); rpgWrap.innerHTML='';
+  phases.forEach(p=>{
+    const status = phaseStatus(p);
+    const div=document.createElement('div');
+    div.className='quest'+(status==='done'?' done':'')+(status==='current'?' current':'')+(p.boss?' boss':'');
+    div.innerHTML = `<div class="quest-icon">${p.boss?'👑':(status==='done'?'✓':'')}</div>
+      <div class="quest-body"><div class="quest-name">${p.boss?'BOSS: ':''}${p.note}</div><div class="quest-meta">${p.label} · ${p.detail}</div></div>
+      <div class="quest-xp">${p.targetHrs>0 ? p.targetHrs+'h' : (p.boss?'+500 XP':'—')}</div>`;
+    rpgWrap.appendChild(div);
+  });
+
+  const mapWrap = document.getElementById('map-stages'); mapWrap.innerHTML='';
+  phases.forEach(p=>{
+    const status = phaseStatus(p);
+    const div=document.createElement('div');
+    div.className='map-stage'+(status==='done'?' done':'')+(status==='current'?' current':'')+(p.boss?' boss':'');
+    div.innerHTML = `<div class="map-node">${p.boss?'👑':(status==='done'?'✓':'')}</div>
+      <div class="map-card"><div class="map-stage-name">${p.boss?'BOSS: ':''}${p.note}</div><div class="map-stage-meta">${p.label}</div><div class="map-stage-meta">${p.detail}</div>${p.targetHrs>0?`<div class="map-stage-hrs">${p.targetHrs}h target</div>`:''}</div>`;
+    mapWrap.appendChild(div);
+  });
+}
+
+// ================= DAILY CHECKLIST UI =================
+function allContentDates(){
+  const dates=[]; let c=CONTENT_START;
+  while(c<=CONTENT_END){ dates.push(c); c=addDays(c,1); }
+  return dates;
+}
+let clCurrentDate = null;
+
+function populateDateSelect(){
+  const sel = document.getElementById('cl-date-select');
+  sel.innerHTML='';
+  allContentDates().forEach(d=>{
+    const opt=document.createElement('option');
+    opt.value=d;
+    const label = new Date(d+"T00:00:00").toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+    opt.textContent = label + (d===todayStr() ? " (today)" : "");
+    sel.appendChild(opt);
+  });
+  const t = todayStr();
+  clCurrentDate = (t>=CONTENT_START && t<=CONTENT_END) ? t : CONTENT_START;
+  sel.value = clCurrentDate;
+}
+
+async function renderChecklist(){
+  const dateStr = clCurrentDate;
+  document.getElementById('cl-date-select').value = dateStr;
+  const target = dateStr==="2026-08-11" ? (auditQueue[0].hrs+auditQueue[1].hrs) : dailyTargetHrs(dateStr);
+  document.getElementById('cl-target-line').textContent = dateStr==="2026-08-11"
+    ? `Light finish today — just 2 Audit lectures (~${target.toFixed(1)}h). Full pace starts tomorrow.`
+    : `Target: ~${target.toFixed(1)}h of new content + 1h revision`;
+
+  const items = await getDayItems(dateStr);
+  const doneCount = items.filter(i=>i.done).length;
+  document.getElementById('cl-progress-line').textContent = `${doneCount}/${items.length} completed today`;
+
+  const banner = document.getElementById('cl-banner');
+  banner.innerHTML = (items.length>0 && doneCount===items.length) ? `<div class="cl-complete-banner">🎉 Day complete! Great work.</div>` : '';
+
+  const wrap = document.getElementById('cl-items');
+  wrap.innerHTML='';
+  items.forEach((it,idx)=>{
+    const row = document.createElement('div');
+    row.className = 'cl-item'+(it.done?' done':'')+(it.subject==='revision'?' revision':'');
+    row.innerHTML = `
+      <div class="cl-checkbox" data-idx="${idx}">${it.done?'✓':''}</div>
+      <div class="cl-body">
+        <div class="cl-name"><span class="cl-tag ${it.subject}">${it.subject.toUpperCase()}</span>${it.name}</div>
+        <div class="cl-meta">${it.hrs}h</div>
+      </div>
+      <div class="cl-actions">
+        <button data-act="edit" data-idx="${idx}">✎</button>
+        <button data-act="del" data-idx="${idx}">🗑</button>
+      </div>
+      <div class="floatplus" data-idx="${idx}">+1 ✨</div>
+    `;
+    wrap.appendChild(row);
+  });
+
+  wrap.querySelectorAll('.cl-checkbox').forEach(cb=>{
+    cb.addEventListener('click', async ()=>{
+      const idx = +cb.dataset.idx;
+      const dayItems = await getDayItems(dateStr);
+      dayItems[idx].done = !dayItems[idx].done;
+      await saveDayItems(dateStr, dayItems);
+      cb.classList.add('pop');
+      if(dayItems[idx].done){
+        const fp = wrap.querySelector(`.floatplus[data-idx="${idx}"]`);
+        fp.classList.add('show');
+        setTimeout(()=>fp.classList.remove('show'),900);
+      }
+      setTimeout(()=>renderChecklist(),150);
+    });
+  });
+  wrap.querySelectorAll('[data-act="del"]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const idx = +btn.dataset.idx;
+      const dayItems = await getDayItems(dateStr);
+      dayItems.splice(idx,1);
+      await saveDayItems(dateStr, dayItems);
+      renderChecklist();
+    });
+  });
+  wrap.querySelectorAll('[data-act="edit"]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const idx = +btn.dataset.idx;
+      const dayItems = await getDayItems(dateStr);
+      const newName = prompt("Edit lecture name:", dayItems[idx].name);
+      if(newName!==null && newName.trim()!==""){
+        dayItems[idx].name = newName.trim();
+        await saveDayItems(dateStr, dayItems);
+        renderChecklist();
+      }
+    });
+  });
+}
+
+document.getElementById('cl-date-select').addEventListener('change', (e)=>{ clCurrentDate=e.target.value; renderChecklist(); });
+document.getElementById('cl-prev').addEventListener('click', ()=>{
+  const dates = allContentDates(); const i = dates.indexOf(clCurrentDate);
+  if(i>0){ clCurrentDate=dates[i-1]; renderChecklist(); }
+});
+document.getElementById('cl-next').addEventListener('click', ()=>{
+  const dates = allContentDates(); const i = dates.indexOf(clCurrentDate);
+  if(i<dates.length-1){ clCurrentDate=dates[i+1]; renderChecklist(); }
+});
+document.getElementById('cl-add-btn').addEventListener('click', async ()=>{
+  const subject = document.getElementById('cl-add-subject').value;
+  const text = document.getElementById('cl-add-text').value.trim();
+  const hrs = parseFloat(document.getElementById('cl-add-hrs').value) || 0.5;
+  if(!text) return;
+  const dayItems = await getDayItems(clCurrentDate);
+  dayItems.push({ id:"custom-"+Date.now(), subject, name:text, hrs, done:false });
+  await saveDayItems(clCurrentDate, dayItems);
+  document.getElementById('cl-add-text').value='';
+  document.getElementById('cl-add-hrs').value='';
+  renderChecklist();
+});
+
+// ================= TAB SWITCHER =================
+document.querySelectorAll('.switcher button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.switcher button').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.target).classList.add('active');
+  });
+});
+
+// ================= THEME TOGGLE =================
+async function initTheme(){
+  const saved = await storeGet('theme-pref');
+  const theme = saved && saved.value ? saved.value : 'dark';
+  applyTheme(theme);
+}
+function applyTheme(theme){
+  document.body.dataset.theme = theme;
+  document.getElementById('theme-btn').textContent = theme==='light' ? '☀️ Light' : '🌙 Dark';
+}
+document.getElementById('theme-btn').addEventListener('click', async ()=>{
+  const next = document.body.dataset.theme==='light' ? 'dark' : 'light';
+  applyTheme(next);
+  await storeSet('theme-pref', {value: next});
+});
+
+// ================= INIT =================
+initTheme();
+populateDateSelect();
+renderChecklist();
+refreshAll();
+</script>
+</body>
+</html>

@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dosed — supplement tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #EEF0E7;
+    --card: #FBFBF6;
+    --ink: #23312A;
+    --ink-soft: #5B675F;
+    --line: #D9D5C4;
+    --amber: #B8752B;
+    --amber-light: #F3E3CC;
+    --sage: #4F7355;
+    --sage-light: #DEE9DD;
+    --danger: #A8442F;
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    padding: 2.5rem 1.25rem 4rem;
+    min-height: 100vh;
+    transition: background 0.25s ease, color 0.25s ease;
+  }
+  .wrap { max-width: 800px; margin: 0 auto; }
+  header { margin-bottom: 1.1rem; display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; }
+  .eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin: 0 0 0.35rem;
+  }
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 32px;
+    margin: 0 0 0.4rem;
+    letter-spacing: -0.01em;
+  }
+  .sub { color: var(--ink-soft); font-size: 14px; margin: 0; max-width: 52ch; line-height: 1.5; }
+
+  .top-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  button {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--card);
+    color: var(--ink);
+    padding: 0.55rem 0.9rem;
+    transition: all 0.15s ease;
+  }
+  button:hover { border-color: var(--amber); color: var(--amber); }
+  button.primary { background: var(--sage); color: #fff; border-color: var(--sage); }
+  button.primary:hover { background: var(--sage); filter: brightness(0.9); color: #fff; }
+  button.active { background: var(--ink); color: var(--card); border-color: var(--ink); }
+  button.icon-btn { padding: 0.5rem 0.65rem; }
+
+  /* Theme picker */
+  .theme-row { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+  .theme-row .theme-label { font-family: 'IBM Plex Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-soft); margin-right: 0.2rem; }
+  .swatch {
+    width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 2px solid transparent;
+    display: flex; overflow: hidden; padding: 0; box-shadow: 0 0 0 1px var(--line);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .swatch:hover { transform: translateY(-2px); }
+  .swatch.selected { box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--ink); }
+  .swatch span { flex: 1; height: 100%; }
+
+  .view-toggle { display: flex; gap: 0.4rem; margin-bottom: 1.5rem; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.4rem;
+    margin-bottom: 1.1rem;
+  }
+  .card h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 19px;
+    margin: 0 0 0.15rem;
+  }
+  .stage-time {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-soft);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.9rem;
+  }
+  .stage-time input[type="time"] {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 2px 6px;
+    background: var(--paper);
+    color: var(--ink);
+  }
+
+  .item-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.7rem;
+    padding: 0.55rem 0;
+    border-top: 1px solid var(--line);
+  }
+  .item-row:first-of-type { border-top: none; }
+  .item-row input[type="checkbox"] {
+    appearance: none;
+    width: 20px; height: 20px;
+    min-width: 20px;
+    border: 1.5px solid var(--line);
+    border-radius: 6px;
+    background: var(--paper);
+    cursor: pointer;
+    position: relative;
+    margin-top: 1px;
+  }
+  .item-row input[type="checkbox"]:checked { background: var(--sage); border-color: var(--sage); }
+  .item-row input[type="checkbox"]:checked::after {
+    content: "";
+    position: absolute;
+    left: 6px; top: 2px;
+    width: 5px; height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+  .item-row input[type="checkbox"]:disabled { opacity: 0.35; cursor: not-allowed; }
+  .item-name { font-size: 14.5px; font-weight: 500; line-height: 1.3; }
+  .item-freq { font-size: 12px; color: var(--ink-soft); margin-top: 1px; }
+  .item-off-today { color: var(--ink-soft); }
+  .item-off-today .item-name { text-decoration: line-through; text-decoration-color: var(--line); }
+  .tag-today {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    background: var(--amber-light);
+    color: var(--amber);
+    border-radius: 5px;
+    padding: 1px 6px;
+    margin-left: 6px;
+    white-space: nowrap;
+  }
+
+  /* Weekly grid */
+  .week-nav { display: flex; align-items: center; justify-content: space-between; gap: 0.7rem; margin-bottom: 1rem; flex-wrap: wrap; }
+  .week-nav-controls { display: flex; align-items: center; gap: 0.4rem; }
+  .week-range { font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: var(--ink-soft); }
+  .grid-wrap { overflow-x: auto; }
+  table.week-grid { border-collapse: collapse; width: 100%; font-size: 13px; }
+  table.week-grid th, table.week-grid td { padding: 0.5rem 0.5rem; text-align: center; border-bottom: 1px solid var(--line); }
+  table.week-grid th { font-family: 'IBM Plex Mono', monospace; font-weight: 500; font-size: 11px; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.04em; }
+  table.week-grid th .th-date { display: block; font-size: 10px; opacity: 0.7; margin-top: 1px; }
+  table.week-grid th.is-today { color: var(--amber); }
+  table.week-grid td:first-child, table.week-grid th:first-child { text-align: left; min-width: 190px; }
+  table.week-grid .stage-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--amber); background: var(--paper); }
+  table.week-grid .stage-label td { padding: 0.6rem 0.5rem 0.3rem; }
+  table.week-grid .cell-check {
+    display: inline-block; width: 18px; height: 18px; border-radius: 5px;
+    border: 1.5px solid var(--line); cursor: pointer; background: var(--card); position: relative;
+  }
+  table.week-grid .cell-check.done { background: var(--sage); border-color: var(--sage); }
+  table.week-grid .cell-check.done::after {
+    content: ""; position: absolute; left: 5px; top: 1px; width: 4px; height: 9px;
+    border: solid white; border-width: 0 2px 2px 0; transform: rotate(45deg);
+  }
+  table.week-grid .cell-na { color: var(--line); font-size: 12px; }
+  .week-summary { display: flex; gap: 1.4rem; margin-top: 0.9rem; flex-wrap: wrap; }
+  .week-summary .stat { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--ink-soft); }
+  .week-summary .stat b { color: var(--ink); font-size: 14px; }
+
+  .progress-strip {
+    display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1.5rem;
+  }
+  .progress-bar { flex: 1; height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; }
+  .progress-bar-fill { height: 100%; background: var(--sage); border-radius: 4px; transition: width 0.3s ease; }
+  .progress-label { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--ink-soft); white-space: nowrap; }
+
+  .day-picker { display: flex; gap: 0.3rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+  .day-picker button { padding: 0.5rem 0.75rem; min-width: 44px; }
+
+  .reminder-banner {
+    background: var(--amber-light); border: 1px solid var(--amber);
+    border-radius: var(--radius); padding: 0.9rem 1.1rem; margin-bottom: 1.5rem;
+    font-size: 13.5px; color: var(--ink); display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;
+  }
+  .reminder-banner.on { background: var(--sage-light); border-color: var(--sage); }
+
+  footer { text-align: center; color: var(--ink-soft); font-size: 12px; margin-top: 2.5rem; }
+
+  @media (max-width: 520px) {
+    h1 { font-size: 26px; }
+    .card { padding: 1rem 1rem; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div>
+      <p class="eyebrow">Dosed · Chhavi Jaisansaria</p>
+      <h1>Supplement tracker</h1>
+      <p class="sub">Full daily regimen from Dr. Karan Jadhav (URECO), organised by when you take it. Check things off as you go — your history is saved on this device, for this week, next week, and every week after.</p>
+    </div>
+    <div class="top-actions">
+      <button id="exportBtn" title="Download a backup of your data">💾 Export</button>
+      <button id="importBtn" title="Restore data from a backup file">⬆️ Restore</button>
+      <input type="file" id="importFile" accept="application/json" style="display:none">
+      <button id="resetTodayBtn">Clear today</button>
+    </div>
+  </header>
+
+  <div class="theme-row" id="themeRow">
+    <span class="theme-label">Colour</span>
+    <!-- swatch buttons injected here -->
+  </div>
+
+  <div id="reminderBanner" class="reminder-banner">
+    <span id="reminderText">Turn on reminders and this tracker will nudge you at each stage's time.</span>
+    <button id="reminderBtn" class="primary">Enable reminders</button>
+  </div>
+
+  <div class="view-toggle">
+    <button id="btnDaily" class="active">Daily checklist</button>
+    <button id="btnWeekly">Weekly grid</button>
+  </div>
+
+  <!-- DAILY VIEW -->
+  <div id="dailyView">
+    <div class="day-picker" id="dayPicker"></div>
+
+    <div class="progress-strip">
+      <div class="progress-bar"><div class="progress-bar-fill" id="progressFill" style="width:0%"></div></div>
+      <span class="progress-label" id="progressLabel">0 / 0 taken</span>
+    </div>
+
+    <div id="stagesContainer"></div>
+  </div>
+
+  <!-- WEEKLY VIEW -->
+  <div id="weeklyView" style="display:none;">
+    <div class="week-nav">
+      <div class="week-nav-controls">
+        <button id="prevWeekBtn" class="icon-btn">‹ Prev</button>
+        <button id="thisWeekBtn">This week</button>
+        <button id="nextWeekBtn" class="icon-btn">Next ›</button>
+      </div>
+      <span class="week-range" id="weekRangeLabel"></span>
+    </div>
+    <div class="card grid-wrap">
+      <table class="week-grid" id="weekGrid"></table>
+    </div>
+    <div class="week-summary" id="weekSummary"></div>
+  </div>
+
+  <footer>Data is stored locally in this browser, week over week. Prescribed by Dr. Karan Jadhav, MDS · URECO, Khar West, Mumbai.</footer>
+</div>
+
+<script>
+/* ---------- Themes ---------- */
+const THEMES = {
+  sage:    { name: "Sage & Amber",  paper:"#EEF0E7", card:"#FBFBF6", ink:"#23312A", inkSoft:"#5B675F", line:"#D9D5C4", accent:"#B8752B", accentLight:"#F3E3CC", accent2:"#4F7355", accent2Light:"#DEE9DD" },
+  plum:    { name: "Plum & Gold",   paper:"#F4EFF2", card:"#FCFAFB", ink:"#2E2233", inkSoft:"#6B5C70", line:"#DED1DC", accent:"#B08D3E", accentLight:"#F1E6C9", accent2:"#6B3F5C", accent2Light:"#E9DCE6" },
+  slate:   { name: "Slate & Coral", paper:"#EBF0F2", card:"#F9FBFC", ink:"#20303A", inkSoft:"#5A6D77", line:"#CFDCE1", accent:"#C1613F", accentLight:"#F2DDD2", accent2:"#3E6B85", accent2Light:"#D9E6EC" },
+  fern:    { name: "Fern & Rust",   paper:"#EFF1E6", card:"#FAFBF4", ink:"#20291B", inkSoft:"#586150", line:"#D6D9C3", accent:"#A8462F", accentLight:"#EFD3C9", accent2:"#3F6B3A", accent2Light:"#DAE6D3" },
+  ink:     { name: "Denim & Clay",  paper:"#EAEDF2", card:"#F8F9FC", ink:"#1F2733", inkSoft:"#59636F", line:"#D2D8E2", accent:"#BD6A4C", accentLight:"#F1DBD1", accent2:"#37507A", accent2Light:"#D9DFEC" },
+};
+const THEME_KEY = "dosed_theme_v3";
+
+function applyTheme(key) {
+  const t = THEMES[key] || THEMES.sage;
+  const r = document.documentElement.style;
+  r.setProperty("--paper", t.paper);
+  r.setProperty("--card", t.card);
+  r.setProperty("--ink", t.ink);
+  r.setProperty("--ink-soft", t.inkSoft);
+  r.setProperty("--line", t.line);
+  r.setProperty("--amber", t.accent);
+  r.setProperty("--amber-light", t.accentLight);
+  r.setProperty("--sage", t.accent2);
+  r.setProperty("--sage-light", t.accent2Light);
+  localStorage.setItem(THEME_KEY, key);
+  renderThemeRow(key);
+}
+
+function renderThemeRow(activeKey) {
+  const row = document.getElementById("themeRow");
+  row.querySelectorAll(".swatch").forEach(el => el.remove());
+  Object.keys(THEMES).forEach(key => {
+    const t = THEMES[key];
+    const btn = document.createElement("button");
+    btn.className = "swatch" + (key === activeKey ? " selected" : "");
+    btn.title = t.name;
+    btn.innerHTML = `<span style="background:${t.paper}"></span><span style="background:${t.accent}"></span><span style="background:${t.accent2}"></span>`;
+    btn.addEventListener("click", () => applyTheme(key));
+    row.appendChild(btn);
+  });
+}
+
+/* ---------- Data model ---------- */
+// days: array of 3-letter codes the item is taken on, or "daily"
+const STAGES = [
+  { id: "empty-stomach", label: "Empty stomach", time: "07:00", items: [
+    { id: "t3", name: "T3", days: "daily", freq: "Every day", note: "30 mins after, probiotic can be taken" },
+    { id: "opti-lacto", name: "Opti Lacto Spore", days: ["Mon"], freq: "1x/week — Mon" },
+    { id: "opti-bifido", name: "Opti Bifido", days: ["Thu"], freq: "1x/week — Thurs" },
+    { id: "biofilm", name: "Biofilm Care", days: ["Wed","Sat"], freq: "2x/week — Wed, Sat" },
+    { id: "s-boulardii", name: "Saccharomyces Boulardii", days: ["Tue","Fri"], freq: "2x/week — Tues, Fri", highlight: true },
+  ]},
+  { id: "1hr-after-empty", label: "1 hour after the above", time: "08:00", items: [
+    { id: "opti-bile", name: "Opti Bile", days: ["Tue","Thu"], freq: "2x/week — Tues, Thurs" },
+    { id: "multi-pancreatic", name: "Multi Pancreatic Enzyme", days: ["Fri","Sat"], freq: "2x/week — Fri, Sat" },
+  ]},
+  { id: "post-breakfast", label: "Post breakfast", time: "09:00", items: [
+    { id: "cla", name: "CLA", days: ["Mon","Wed","Fri"], freq: "3x/week — Mon, Wed, Fri" },
+    { id: "l-carnitine", name: "L-Carnitine", days: ["Tue","Thu","Sat"], freq: "3x/week — Tues, Thurs, Sat" },
+  ]},
+  { id: "mid-morning", label: "With mid-morning snacks", time: "11:00", items: [
+    { id: "protein-1", name: "Protein (½ scoop in water)", days: "daily", freq: "Every day" },
+    { id: "estrogen-balance", name: "Estrogen Balance", days: ["Mon","Wed","Fri"], freq: "3x/week — Mon, Wed, Fri" },
+    { id: "pcos-balance", name: "PCOS Balance", days: ["Tue","Thu","Sat"], freq: "3x/week — Tues, Thurs, Sat" },
+  ]},
+  { id: "post-mid-morning", label: "Post mid-morning snacks", time: "11:30", items: [
+    { id: "ubiquinol", name: "Ubiquinol", days: ["Mon","Wed","Fri"], freq: "3x/week — Mon, Wed, Fri" },
+    { id: "b12", name: "B12 (under the tongue)", days: ["Tue","Thu","Sat"], freq: "3x/week — Tues, Thurs, Sat" },
+  ]},
+  { id: "pre-lunch", label: "Pre-lunch", time: "13:00", items: [
+    { id: "gut-cleanse-1", name: "Gut Cleanse Care", days: "daily", freq: "Every day" },
+  ]},
+  { id: "post-lunch", label: "Post lunch", time: "13:45", items: [
+    { id: "digestive-enzyme", name: "Digestive Enzyme", days: "daily", freq: "Every day" },
+    { id: "omega-3", name: "Omega 3", days: "daily", freq: "Every day", note: "After Digestive Enzyme" },
+  ]},
+  { id: "evening-snacks", label: "With evening snacks", time: "17:00", items: [
+    { id: "vitamin-d3", name: "Vitamin D3", days: "daily", freq: "Every day" },
+  ]},
+  { id: "post-evening-snacks", label: "Immediately post evening snacks", time: "17:15", items: [
+    { id: "ala", name: "ALA", days: ["Mon","Wed","Fri"], freq: "3x/week — Mon, Wed, Fri" },
+    { id: "opti-liver", name: "Opti Liver", days: ["Tue","Thu","Sat"], freq: "3x/week — Tues, Thurs, Sat" },
+  ]},
+  { id: "30min-post-evening", label: "30 mins post evening snacks", time: "17:45", items: [
+    { id: "vitamin-b6", name: "Vitamin B6", days: "daily", freq: "Every day" },
+  ]},
+  { id: "after-b6", label: "25–30 mins after Vitamin B6", time: "18:15", items: [
+    { id: "chasteberry", name: "Chasteberry", days: "daily", freq: "Every day" },
+  ]},
+  { id: "15min-later", label: "15 mins later", time: "18:30", items: [
+    { id: "protein-2", name: "Protein (½ scoop in water)", days: "daily", freq: "Every day" },
+  ]},
+  { id: "pre-dinner", label: "Pre-dinner", time: "20:00", items: [
+    { id: "gut-cleanse-2", name: "Gut Cleanse Care", days: "daily", freq: "Every day" },
+  ]},
+  { id: "post-dinner", label: "Post dinner", time: "21:00", items: [
+    { id: "magnesium", name: "Magnesium Glycinate", days: ["Mon","Wed","Fri"], freq: "3x/week — Mon, Wed, Fri" },
+  ]},
+  { id: "bedtime", label: "Bedtime", time: "22:30", items: [
+    { id: "chlorella", name: "Chlorella", days: "daily", freq: "Every day", highlight: true },
+  ]},
+];
+
+const DAY_CODES = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+const DAY_FULL = { Mon:"Monday", Tue:"Tuesday", Wed:"Wednesday", Thu:"Thursday", Fri:"Friday", Sat:"Saturday", Sun:"Sunday" };
+
+/* ---------- Storage helpers ---------- */
+const CHECK_KEY = "dosed_checks_v2";       // { "2026-08-05": { "itemId": true, ... } }
+const TIME_KEY = "dosed_stage_times_v2";   // { stageId: "HH:MM" }
+const REMINDER_KEY = "dosed_reminders_on_v2";
+
+function loadChecks() { try { return JSON.parse(localStorage.getItem(CHECK_KEY)) || {}; } catch(e) { return {}; } }
+function saveChecks(data) { localStorage.setItem(CHECK_KEY, JSON.stringify(data)); }
+
+function loadStageTimes() {
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem(TIME_KEY)) || {}; } catch(e) {}
+  const merged = {};
+  STAGES.forEach(s => merged[s.id] = saved[s.id] || s.time);
+  return merged;
+}
+function saveStageTimes(data) { localStorage.setItem(TIME_KEY, JSON.stringify(data)); }
+
+// ================= BACKUP / RESTORE =================
+const BACKUP_KEYS = [CHECK_KEY, TIME_KEY, THEME_KEY, REMINDER_KEY];
+function exportBackup(){
+  const dump = {};
+  BACKUP_KEYS.forEach(k=>{ const v = localStorage.getItem(k); if(v!==null) dump[k]=v; });
+  const blob = new Blob([JSON.stringify({app:'dosed', exportedAt:new Date().toISOString(), data:dump}, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `dosed-backup-${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+}
+function importBackup(file){
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const parsed = JSON.parse(reader.result);
+      const dump = parsed.data || parsed;
+      Object.keys(dump).forEach(k=>{ if(BACKUP_KEYS.includes(k)) localStorage.setItem(k, dump[k]); });
+      location.reload();
+    }catch(e){ alert('Could not read that backup file.'); }
+  };
+  reader.readAsText(file);
+}
+document.getElementById('exportBtn').addEventListener('click', exportBackup);
+document.getElementById('importBtn').addEventListener('click', ()=> document.getElementById('importFile').click());
+document.getElementById('importFile').addEventListener('change', (e)=>{ if(e.target.files[0]) importBackup(e.target.files[0]); });
+
+let checks = loadChecks();
+let stageTimes = loadStageTimes();
+let remindersOn = localStorage.getItem(REMINDER_KEY) === "1";
+
+/* ---------- Date helpers ---------- */
+function toISODate(d) {
+  const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,"0"), day = String(d.getDate()).padStart(2,"0");
+  return `${y}-${m}-${day}`;
+}
+function dayCodeFromDate(d) {
+  const map = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  return map[d.getDay()];
+}
+function isItemDueOn(item, dayCode) {
+  if (item.days === "daily") return true;
+  return item.days.includes(dayCode);
+}
+function mondayOf(d) {
+  const dow = d.getDay();
+  const diffToMonday = (dow === 0 ? -6 : 1 - dow);
+  const m = new Date(d);
+  m.setDate(d.getDate() + diffToMonday);
+  m.setHours(0,0,0,0);
+  return m;
+}
+
+let selectedDate = new Date();
+let weekOffset = 0; // 0 = current week, 1 = next week, -1 = previous week, etc.
+
+/* ---------- Rendering: daily view ---------- */
+function renderDayPicker() {
+  const picker = document.getElementById("dayPicker");
+  picker.innerHTML = "";
+  const today = new Date();
+  for (let offset = -3; offset <= 10; offset++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() + offset);
+    const btn = document.createElement("button");
+    const isSelected = toISODate(d) === toISODate(selectedDate);
+    const isToday = toISODate(d) === toISODate(today);
+    btn.textContent = (isToday ? "Today " : "") + d.toLocaleDateString(undefined, { weekday: "short", day: "numeric" });
+    if (isSelected) btn.classList.add("active");
+    btn.addEventListener("click", () => { selectedDate = d; renderAll(); });
+    picker.appendChild(btn);
+  }
+}
+
+function renderStages() {
+  const container = document.getElementById("stagesContainer");
+  container.innerHTML = "";
+  const iso = toISODate(selectedDate);
+  const dayCode = dayCodeFromDate(selectedDate);
+  const dayChecks = checks[iso] || {};
+
+  let totalDue = 0, totalDone = 0;
+
+  STAGES.forEach(stage => {
+    const dueItems = stage.items.filter(it => isItemDueOn(it, dayCode));
+    if (dueItems.length === 0) return;
+
+    const card = document.createElement("div");
+    card.className = "card";
+
+    const h2 = document.createElement("h2");
+    h2.textContent = stage.label;
+    card.appendChild(h2);
+
+    const timeRow = document.createElement("div");
+    timeRow.className = "stage-time";
+    timeRow.innerHTML = `<span>Reminder</span>`;
+    const timeInput = document.createElement("input");
+    timeInput.type = "time";
+    timeInput.value = stageTimes[stage.id];
+    timeInput.addEventListener("change", () => {
+      stageTimes[stage.id] = timeInput.value;
+      saveStageTimes(stageTimes);
+    });
+    timeRow.appendChild(timeInput);
+    card.appendChild(timeRow);
+
+    dueItems.forEach(item => {
+      totalDue++;
+      const row = document.createElement("div");
+      row.className = "item-row";
+      const done = !!dayChecks[item.id];
+      if (done) totalDone++;
+
+      const cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.checked = done;
+      cb.addEventListener("change", () => {
+        if (!checks[iso]) checks[iso] = {};
+        checks[iso][item.id] = cb.checked;
+        saveChecks(checks);
+        renderStages();
+      });
+      row.appendChild(cb);
+
+      const textWrap = document.createElement("div");
+      const nameEl = document.createElement("div");
+      nameEl.className = "item-name";
+      nameEl.textContent = item.name;
+      if (item.highlight) {
+        const tag = document.createElement("span");
+        tag.className = "tag-today";
+        tag.textContent = "care+";
+        nameEl.appendChild(tag);
+      }
+      const freqEl = document.createElement("div");
+      freqEl.className = "item-freq";
+      freqEl.textContent = item.note ? `${item.freq} · ${item.note}` : item.freq;
+      textWrap.appendChild(nameEl);
+      textWrap.appendChild(freqEl);
+      row.appendChild(textWrap);
+
+      card.appendChild(row);
+    });
+
+    container.appendChild(card);
+  });
+
+  const pct = totalDue ? Math.round((totalDone / totalDue) * 100) : 0;
+  document.getElementById("progressFill").style.width = pct + "%";
+  document.getElementById("progressLabel").textContent = `${totalDone} / ${totalDue} taken`;
+}
+
+document.getElementById("resetTodayBtn").addEventListener("click", () => {
+  const iso = toISODate(selectedDate);
+  if (confirm(`Clear all checkmarks for ${selectedDate.toLocaleDateString(undefined,{weekday:"long", month:"short", day:"numeric"})}?`)) {
+    checks[iso] = {};
+    saveChecks(checks);
+    renderAll();
+  }
+});
+
+/* ---------- Rendering: weekly grid (supports prev/this/next week) ---------- */
+function renderWeeklyGrid() {
+  const table = document.getElementById("weekGrid");
+  table.innerHTML = "";
+
+  const baseMonday = mondayOf(new Date());
+  const monday = new Date(baseMonday);
+  monday.setDate(baseMonday.getDate() + weekOffset * 7);
+
+  const weekDates = DAY_CODES.map((_, i) => {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    return d;
+  });
+
+  const todayISO = toISODate(new Date());
+  const rangeLabel = `${weekDates[0].toLocaleDateString(undefined,{month:"short", day:"numeric"})} – ${weekDates[6].toLocaleDateString(undefined,{month:"short", day:"numeric", year:"numeric"})}`;
+  document.getElementById("weekRangeLabel").textContent =
+    (weekOffset === 0 ? "This week · " : weekOffset === 1 ? "Next week · " : weekOffset === -1 ? "Last week · " : "") + rangeLabel;
+
+  const thead = document.createElement("thead");
+  const headRow = document.createElement("tr");
+  headRow.innerHTML = `<th>Supplement</th>` + DAY_CODES.map((d,i) => {
+    const isToday = toISODate(weekDates[i]) === todayISO;
+    return `<th class="${isToday ? 'is-today' : ''}">${d}<span class="th-date">${weekDates[i].getDate()}</span></th>`;
+  }).join("");
+  thead.appendChild(headRow);
+  table.appendChild(thead);
+
+  const tbody = document.createElement("tbody");
+  let weekDue = 0, weekDone = 0;
+
+  STAGES.forEach(stage => {
+    const stageRow = document.createElement("tr");
+    stageRow.className = "stage-label";
+    const td = document.createElement("td");
+    td.colSpan = 8;
+    td.textContent = stage.label;
+    stageRow.appendChild(td);
+    tbody.appendChild(stageRow);
+
+    stage.items.forEach(item => {
+      const tr = document.createElement("tr");
+      const nameTd = document.createElement("td");
+      nameTd.textContent = item.name;
+      tr.appendChild(nameTd);
+
+      DAY_CODES.forEach((code, i) => {
+        const td = document.createElement("td");
+        const due = isItemDueOn(item, code);
+        if (!due) {
+          td.innerHTML = `<span class="cell-na">–</span>`;
+        } else {
+          weekDue++;
+          const iso = toISODate(weekDates[i]);
+          const dayChecks = checks[iso] || {};
+          const isDone = !!dayChecks[item.id];
+          if (isDone) weekDone++;
+          const span = document.createElement("span");
+          span.className = "cell-check" + (isDone ? " done" : "");
+          span.addEventListener("click", () => {
+            if (!checks[iso]) checks[iso] = {};
+            checks[iso][item.id] = !checks[iso][item.id];
+            saveChecks(checks);
+            renderWeeklyGrid();
+          });
+          td.appendChild(span);
+        }
+        tr.appendChild(td);
+      });
+
+      tbody.appendChild(tr);
+    });
+  });
+
+  table.appendChild(tbody);
+
+  const summary = document.getElementById("weekSummary");
+  const pct = weekDue ? Math.round((weekDone / weekDue) * 100) : 0;
+  summary.innerHTML = `
+    <span class="stat"><b>${weekDone}</b> / ${weekDue} doses ${weekOffset < 0 ? 'were' : ''} checked ${weekOffset > 0 ? '(planned)' : ''}</span>
+    <span class="stat"><b>${pct}%</b> complete</span>
+  `;
+}
+
+document.getElementById("prevWeekBtn").addEventListener("click", () => { weekOffset -= 1; renderWeeklyGrid(); });
+document.getElementById("nextWeekBtn").addEventListener("click", () => { weekOffset += 1; renderWeeklyGrid(); });
+document.getElementById("thisWeekBtn").addEventListener("click", () => { weekOffset = 0; renderWeeklyGrid(); });
+
+/* ---------- View toggle ---------- */
+document.getElementById("btnDaily").addEventListener("click", () => {
+  document.getElementById("btnDaily").classList.add("active");
+  document.getElementById("btnWeekly").classList.remove("active");
+  document.getElementById("dailyView").style.display = "block";
+  document.getElementById("weeklyView").style.display = "none";
+});
+document.getElementById("btnWeekly").addEventListener("click", () => {
+  document.getElementById("btnWeekly").classList.add("active");
+  document.getElementById("btnDaily").classList.remove("active");
+  document.getElementById("weeklyView").style.display = "block";
+  document.getElementById("dailyView").style.display = "none";
+  renderWeeklyGrid();
+});
+
+/* ---------- Reminders ---------- */
+function updateReminderBanner() {
+  const banner = document.getElementById("reminderBanner");
+  const text = document.getElementById("reminderText");
+  const btn = document.getElementById("reminderBtn");
+  if (remindersOn && Notification.permission === "granted") {
+    banner.classList.add("on");
+    text.textContent = "Reminders are on — you'll get a nudge at each stage's time (while this tab is open).";
+    btn.textContent = "Turn off";
+  } else {
+    banner.classList.remove("on");
+    text.textContent = "Turn on reminders and this tracker will nudge you at each stage's time.";
+    btn.textContent = "Enable reminders";
+  }
+}
+
+document.getElementById("reminderBtn").addEventListener("click", () => {
+  if (remindersOn) {
+    remindersOn = false;
+    localStorage.setItem(REMINDER_KEY, "0");
+    updateReminderBanner();
+    return;
+  }
+  if (!("Notification" in window)) {
+    alert("This browser doesn't support notifications.");
+    return;
+  }
+  Notification.requestPermission().then(perm => {
+    if (perm === "granted") {
+      remindersOn = true;
+      localStorage.setItem(REMINDER_KEY, "1");
+      new Notification("Dosed", { body: "Reminders are on. You'll be nudged at each stage's time while this tab stays open." });
+    }
+    updateReminderBanner();
+  });
+});
+
+let lastFiredMinute = null;
+setInterval(() => {
+  if (!remindersOn || Notification.permission !== "granted") return;
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2,"0");
+  const mm = String(now.getMinutes()).padStart(2,"0");
+  const nowStr = `${hh}:${mm}`;
+  if (nowStr === lastFiredMinute) return;
+
+  const dayCode = dayCodeFromDate(now);
+  STAGES.forEach(stage => {
+    if (stageTimes[stage.id] === nowStr) {
+      const due = stage.items.filter(it => isItemDueOn(it, dayCode));
+      if (due.length) {
+        lastFiredMinute = nowStr;
+        new Notification(`Dosed — ${stage.label}`, {
+          body: due.map(it => it.name).join(", ")
+        });
+      }
+    }
+  });
+}, 15000);
+
+/* ---------- Init ---------- */
+function renderAll() {
+  renderDayPicker();
+  renderStages();
+}
+applyTheme(localStorage.getItem(THEME_KEY) || "slate");
+updateReminderBanner();
+renderAll();
+</script>
+</body>
+</html>
