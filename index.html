@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Chhavi's Trackers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0E1116; --panel:#171B22; --line:#262C36; --ink:#E7ECF2; --ink-soft:#8D98A6;
+  --a1:#8B5CF6; --a2:#14B8A6; --a3:#F5C842;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0; min-height:100vh; background:var(--bg); color:var(--ink);
+  font-family:'Inter',sans-serif; padding:48px 20px 60px;
+}
+.wrap{max-width:640px; margin:0 auto;}
+h1{
+  font-family:'Space Grotesk',sans-serif; font-size:26px; margin:0 0 6px;
+}
+.sub{color:var(--ink-soft); font-size:13.5px; margin-bottom:32px;}
+.grid{display:flex; flex-direction:column; gap:14px;}
+a.card{
+  display:block; background:var(--panel); border:1px solid var(--line); border-radius:16px;
+  padding:20px; text-decoration:none; color:var(--ink); position:relative; overflow:hidden;
+  transition:border-color .15s, transform .15s;
+}
+a.card:hover{border-color:var(--accent); transform:translateY(-2px);}
+a.card::before{
+  content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--accent);
+}
+.card-emoji{font-size:24px; margin-bottom:8px; display:block;}
+.card-title{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:17px; margin-bottom:4px;}
+.card-desc{color:var(--ink-soft); font-size:12.5px; line-height:1.5;}
+.card1{--accent:var(--a1);}
+.card2{--accent:var(--a2);}
+.card3{--accent:var(--a3);}
+footer{margin-top:40px; text-align:center; color:var(--ink-soft); font-size:11px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Chhavi's Trackers</h1>
+  <div class="sub">Everything in one place.</div>
+  <div class="grid">
+    <a class="card card1" href="./study-tracker_1.html">
+      <span class="card-emoji">📚</span>
+      <div class="card-title">Group 2 Grind — CA Inter study tracker</div>
+      <div class="card-desc">Timer, daily checklist, and RPG/quest-map progress for Audit, FM & SM. Syncs across devices via GitHub.</div>
+    </a>
+    <a class="card card2" href="./bloom-time-tracker_1.html">
+      <span class="card-emoji">🌼</span>
+      <div class="card-title">Bloom — your day, in petals</div>
+      <div class="card-desc">Paint each half hour of your day and see where your time actually goes.</div>
+    </a>
+    <a class="card card3" href="./supplement-tracker_1.html">
+      <span class="card-emoji">💊</span>
+      <div class="card-title">Dosed — supplement tracker</div>
+      <div class="card-desc">Daily regimen checklist, organised by time of day.</div>
+    </a>
+  </div>
+  <footer>my-trackers · chhavij03.github.io</footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Group 2 Grind — CA Inter Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Baloo+2:wght@500;700;800&family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+/* ============ TOKENS ============ */
+:root{
+  --paper:#EFF3F6;
+  --paper-panel:#FFFFFF;
+  --ink:#1B2430;
+  --ink-soft:#5B6672;
+  --line:#D8E0E7;
+  --accent:#F5C842;
+  --accent-ink:#3A2E00;
+  --coral:#FF6F59;
+  --good:#2FA36B;
+  --audit:#6D5DD3;
+  --fm:#0E9C8C;
+  --sm:#E0578A;
+  --revision:#D98B2B;
+  --boss:#C0392B;
+  --radius:14px;
+  --shadow:0 2px 10px rgba(27,36,48,.06);
+  --font-display:'Space Grotesk',sans-serif;
+  --font-body:'Inter',sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+}
+[data-theme="dark"]{
+  --paper:#11161D;
+  --paper-panel:#191F28;
+  --ink:#E7ECF2;
+  --ink-soft:#8D98A6;
+  --line:#2A3340;
+  --accent:#F5C842;
+  --accent-ink:#1B1400;
+  --shadow:0 2px 14px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--paper); color:var(--ink); font-family:var(--font-body);
+  min-height:100vh; padding-bottom:90px; transition:background .25s,color .25s;
+}
+h1,h2,h3{font-family:var(--font-display); margin:0;}
+button{font-family:var(--font-body); cursor:pointer;}
+::selection{background:var(--accent); color:var(--accent-ink);}
+
+/* ============ TOP BAR ============ */
+.topbar{
+  position:sticky; top:0; z-index:50; background:var(--paper-panel); border-bottom:1px solid var(--line);
+  padding:12px 16px; display:flex; align-items:center; justify-content:space-between; gap:8px;
+}
+.brand{display:flex; flex-direction:column; line-height:1.1;}
+.brand .title{font-family:var(--font-display); font-weight:700; font-size:17px;}
+.brand .sub{font-size:11px; color:var(--ink-soft); font-family:var(--font-mono);}
+.theme-toggle{
+  border:1px solid var(--line); background:var(--paper); color:var(--ink); border-radius:999px;
+  width:38px; height:38px; font-size:16px; display:flex; align-items:center; justify-content:center;
+}
+.sync-badge{
+  border:1px solid var(--line); background:var(--paper); color:var(--ink-soft); border-radius:999px;
+  padding:8px 12px; font-size:11px; font-weight:600; white-space:nowrap;
+}
+.sync-badge.synced{color:var(--good); border-color:var(--good);}
+.sync-badge.syncing{color:var(--revision); border-color:var(--revision);}
+.sync-badge.error{color:var(--coral); border-color:var(--coral);}
+
+.modal-overlay{
+  display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:100;
+  align-items:center; justify-content:center; padding:16px;
+}
+.modal-overlay.open{display:flex;}
+.modal-card{
+  background:var(--paper-panel); border-radius:16px; padding:20px; max-width:420px; width:100%;
+  max-height:88vh; overflow-y:auto; border:1px solid var(--line);
+}
+.form-group{margin-bottom:10px;}
+.form-group label{display:block; font-size:11.5px; font-weight:600; color:var(--ink-soft); margin-bottom:4px;}
+.form-group input{
+  width:100%; border:1px solid var(--line); border-radius:9px; padding:10px; font-size:13px;
+  background:var(--paper); color:var(--ink); font-family:var(--font-body);
+}
+
+/* ============ TABS ============ */
+.tabbar{
+  position:sticky; top:60px; z-index:49; display:flex; gap:6px; padding:10px 12px; background:var(--paper);
+  border-bottom:1px solid var(--line); overflow-x:auto;
+}
+.tab-btn{
+  flex:1; min-width:78px; border:1px solid var(--line); background:var(--paper-panel); color:var(--ink-soft);
+  padding:9px 6px; border-radius:10px; font-weight:600; font-size:12.5px; white-space:nowrap;
+}
+.tab-btn.active{background:var(--ink); color:var(--paper); border-color:var(--ink);}
+[data-theme="dark"] .tab-btn.active{background:var(--accent); color:var(--accent-ink); border-color:var(--accent);}
+
+.view{display:none; padding:16px; max-width:760px; margin:0 auto;}
+.view.active{display:block;}
+
+/* ============ CARD ============ */
+.card{
+  background:var(--paper-panel); border:1px solid var(--line); border-radius:var(--radius);
+  padding:16px; margin-bottom:14px; box-shadow:var(--shadow);
+}
+.card h2{font-size:15px; margin-bottom:10px;}
+.muted{color:var(--ink-soft); font-size:12.5px;}
+
+/* ============ TIMER ============ */
+.timer-display{
+  font-family:var(--font-mono); font-size:44px; font-weight:700; text-align:center; letter-spacing:1px;
+  padding:14px 0 6px;
+}
+.timer-controls{display:flex; gap:8px; justify-content:center; margin-top:8px; flex-wrap:wrap;}
+.btn{
+  border:none; border-radius:10px; padding:11px 16px; font-weight:700; font-size:13.5px; color:#fff;
+}
+.btn-start{background:var(--good);}
+.btn-pause{background:var(--revision);}
+.btn-log{background:var(--audit);}
+.btn-ghost{background:transparent; border:1px solid var(--line); color:var(--ink);}
+.today-log{text-align:center; margin-top:10px; font-size:12.5px; color:var(--ink-soft);}
+
+/* ============ DASHBOARD ============ */
+.subject-table{width:100%; border-collapse:collapse; font-size:13px;}
+.subject-table td,.subject-table th{padding:7px 4px; border-bottom:1px solid var(--line); text-align:left;}
+.subject-table th{color:var(--ink-soft); font-weight:600; font-size:11.5px; text-transform:uppercase; letter-spacing:.03em;}
+.dot{width:9px; height:9px; border-radius:50%; display:inline-block; margin-right:6px;}
+.dot.audit{background:var(--audit);} .dot.fm{background:var(--fm);} .dot.sm{background:var(--sm);} .dot.revision{background:var(--revision);}
+
+.progress-outer{background:var(--paper); border:1px solid var(--line); border-radius:999px; height:14px; overflow:hidden; margin:6px 0;}
+.progress-inner{background:linear-gradient(90deg,var(--accent),var(--coral)); height:100%; transition:width .4s;}
+
+.bars{display:flex; align-items:flex-end; gap:6px; height:110px; margin-top:8px;}
+.bar-col{flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;}
+.bar-fill{width:100%; background:var(--audit); border-radius:4px 4px 0 0; min-height:2px;}
+.bar-label{font-size:9.5px; color:var(--ink-soft); font-family:var(--font-mono);}
+
+.warning{
+  background:rgba(255,111,89,.12); border:1px solid var(--coral); color:var(--coral);
+  border-radius:10px; padding:9px 11px; font-size:12px; margin-top:8px;
+}
+
+/* ============ CHECKLIST ============ */
+.date-nav{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; gap:8px;}
+.date-nav button{border:1px solid var(--line); background:var(--paper-panel); color:var(--ink); border-radius:9px; padding:8px 12px; font-weight:700;}
+.date-picker{font-family:var(--font-mono); font-weight:700; font-size:13px; background:var(--paper-panel); border:1px solid var(--line); border-radius:9px; padding:8px; color:var(--ink);}
+
+.day-banner{
+  text-align:center; font-family:var(--font-display); font-weight:700; font-size:13.5px;
+  padding:8px; border-radius:10px; margin-bottom:10px;
+}
+.day-banner.exam{background:var(--boss); color:#fff;}
+.day-banner.complete{background:var(--good); color:#fff;}
+
+.item-row{
+  display:flex; align-items:flex-start; gap:10px; padding:11px 8px; border-bottom:1px solid var(--line);
+  position:relative;
+}
+.checkbox{
+  width:24px; height:24px; border-radius:7px; border:2px solid var(--line); flex-shrink:0; margin-top:2px;
+  display:flex; align-items:center; justify-content:center; font-size:14px; color:#fff; transition:transform .15s;
+  background:var(--paper);
+}
+.checkbox.done{background:var(--good); border-color:var(--good);}
+.checkbox.pop{transform:scale(1.3);}
+.item-body{flex:1; min-width:0;}
+.item-name{font-weight:600; font-size:14px;}
+.item-name.done{text-decoration:line-through; color:var(--ink-soft);}
+.item-meta{font-size:11px; color:var(--ink-soft); margin-top:2px; display:flex; gap:8px; align-items:center;}
+.tag{font-size:9.5px; font-weight:700; padding:2px 6px; border-radius:5px; text-transform:uppercase; color:#fff;}
+.tag.audit{background:var(--audit);} .tag.fm{background:var(--fm);} .tag.sm{background:var(--sm);} .tag.revision{background:var(--revision);}
+.item-actions{display:flex; gap:4px;}
+.icon-btn{background:none; border:none; font-size:14px; color:var(--ink-soft); padding:4px;}
+.floatplus{
+  position:absolute; right:10px; top:6px; font-size:12px; font-weight:800; color:var(--good);
+  animation:floatup .8s ease-out forwards; pointer-events:none;
+}
+@keyframes floatup{0%{opacity:1; transform:translateY(0);}100%{opacity:0; transform:translateY(-22px);}}
+
+.add-form{display:flex; flex-wrap:wrap; gap:6px; margin-top:10px;}
+.add-form input,.add-form select{
+  border:1px solid var(--line); border-radius:8px; padding:8px; font-size:12.5px; background:var(--paper);
+  color:var(--ink); font-family:var(--font-body);
+}
+.add-form input[name="name"]{flex:1; min-width:120px;}
+.add-form input[name="hours"]{width:70px;}
+
+/* ============ RPG TAB ============ */
+.rpg-wrap{
+  background:radial-gradient(ellipse at top,#2a1c3d,#150e20 70%); border-radius:16px; padding:18px;
+  font-family:var(--font-body); color:#EDE3F5; border:1px solid #3a2a55;
+}
+.rpg-wrap h2{font-family:'Cinzel',serif; color:#E8C766; font-size:19px; letter-spacing:.02em;}
+.rpg-level{display:flex; align-items:center; gap:10px; margin:10px 0;}
+.rpg-badge{
+  width:54px; height:54px; border-radius:50%; background:conic-gradient(#E8C766,#8B5CF6,#E8C766);
+  display:flex; align-items:center; justify-content:center; font-family:'Cinzel',serif; font-weight:700; font-size:16px; color:#1a1225;
+  border:2px solid #E8C766;
+}
+.xp-outer{flex:1; background:#231733; border:1px solid #4a3868; border-radius:999px; height:16px; overflow:hidden;}
+.xp-inner{background:linear-gradient(90deg,#8B5CF6,#E8C766); height:100%; transition:width .5s;}
+.xp-caption{font-family:var(--font-mono); font-size:11px; color:#B9A8D6; margin-top:4px;}
+.quest-list{margin-top:14px; display:flex; flex-direction:column; gap:8px;}
+.quest{
+  background:#1f1530; border:1px solid #3a2a55; border-radius:10px; padding:10px 12px;
+  display:flex; justify-content:space-between; align-items:center; gap:8px;
+}
+.quest.boss{border-color:#C0392B; background:linear-gradient(90deg,#2b1420,#1f1530);}
+.quest-name{font-weight:600; font-size:13px;}
+.quest-sub{font-size:10.5px; color:#9c8bbf; font-family:var(--font-mono);}
+.quest-status{font-size:11px; font-weight:700; padding:3px 8px; border-radius:6px;}
+.quest-status.active{background:#E8C766; color:#1a1225;}
+.quest-status.locked{background:#3a2a55; color:#9c8bbf;}
+.quest-status.done{background:#2f9e6f; color:#0c1f16;}
+
+/* ============ QUEST MAP TAB ============ */
+.map-wrap{
+  background:linear-gradient(180deg,#BFE8FF,#FFE8B5); border-radius:16px; padding:18px 14px; border:1px solid #FFD98C;
+}
+.map-wrap h2{font-family:'Baloo 2',sans-serif; color:#3A2E5C; font-size:20px;}
+.path{position:relative; padding-left:26px; margin-top:14px;}
+.path::before{content:''; position:absolute; left:9px; top:6px; bottom:6px; width:5px; background:repeating-linear-gradient(180deg,#C98A4B 0 10px,#E7B77E 10px 20px); border-radius:4px;}
+.stop{position:relative; margin-bottom:16px;}
+.stop::before{
+  content:''; position:absolute; left:-26px; top:2px; width:22px; height:22px; border-radius:50%;
+  border:3px solid #fff; box-shadow:0 1px 4px rgba(0,0,0,.2);
+}
+.stop.audit::before{background:var(--audit);}
+.stop.fm::before{background:var(--fm);}
+.stop.sm::before{background:var(--sm);}
+.stop.boss::before{background:var(--boss); width:26px; height:26px; left:-28px;}
+.stop-card{background:#fff; border-radius:12px; padding:10px 12px; box-shadow:0 2px 6px rgba(0,0,0,.08);}
+.stop-card.boss{background:#FFF0EC; border:1.5px dashed var(--boss);}
+.stop-title{font-family:'Baloo 2',sans-serif; font-weight:700; font-size:14px; color:#2c2140;}
+.stop-meta{font-size:11px; color:#7a7195; font-family:var(--font-mono);}
+.stop-progress{background:#EFE6FF; border-radius:999px; height:8px; margin-top:6px; overflow:hidden;}
+.stop-progress-inner{background:linear-gradient(90deg,#8B5CF6,#EC4899); height:100%;}
+
+@media(max-width:420px){
+  .timer-display{font-size:36px;}
+  .brand .title{font-size:15px;}
+}
+</style>
+</head>
+<body data-theme="light">
+
+<div class="topbar">
+  <div class="brand">
+    <span class="title">📚 Group 2 Grind</span>
+    <span class="sub" id="countdownLabel">—</span>
+  </div>
+  <div style="display:flex; align-items:center; gap:8px;">
+    <button class="sync-badge" id="syncBadge" title="Sync status">💻 Local only</button>
+    <button class="theme-toggle" id="themeToggle">🌙</button>
+  </div>
+</div>
+
+<!-- ===================== SYNC SETTINGS MODAL ===================== -->
+<div class="modal-overlay" id="syncModalOverlay">
+  <div class="modal-card">
+    <h2 style="margin-bottom:4px;">☁️ Cloud Sync via GitHub</h2>
+    <p class="muted" style="margin:0 0 12px;">
+      Your data will live in a JSON file in a GitHub repo you control, so it stays in sync
+      across every browser/device you connect. Use a <b>fine-grained personal access token</b>
+      scoped to just this one repo with <b>Contents: Read and write</b> permission — not a
+      classic token with broad access.
+    </p>
+    <div class="form-group">
+      <label>GitHub username / org</label>
+      <input type="text" id="ghOwner" placeholder="e.g. yourname">
+    </div>
+    <div class="form-group">
+      <label>Repository name</label>
+      <input type="text" id="ghRepo" placeholder="e.g. group2-tracker">
+    </div>
+    <div class="form-group">
+      <label>Personal access token</label>
+      <input type="password" id="ghToken" placeholder="github_pat_...">
+    </div>
+    <div class="muted" id="syncModalStatus" style="min-height:18px; margin:6px 0;"></div>
+    <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
+      <button class="btn btn-log" id="ghConnectBtn" style="flex:1;">Connect & Sync</button>
+      <button class="btn btn-ghost" id="ghDisconnectBtn">Disconnect</button>
+      <button class="btn btn-ghost" id="ghCloseBtn">Close</button>
+    </div>
+    <p class="muted" style="margin-top:12px; font-size:11px;">
+      Create a token at github.com → Settings → Developer settings → Personal access tokens →
+      Fine-grained tokens → pick this repo only → Repository permissions → Contents: Read and write.
+      The token is stored only in this browser's local storage and sent only to api.github.com.
+    </p>
+  </div>
+</div>
+
+<div class="tabbar">
+  <button class="tab-btn active" data-tab="dashboard">⏱ Dashboard</button>
+  <button class="tab-btn" data-tab="checklist">✅ Checklist</button>
+  <button class="tab-btn" data-tab="rpg">⚔️ RPG</button>
+  <button class="tab-btn" data-tab="map">🗺 Quest Map</button>
+</div>
+
+<!-- ===================== DASHBOARD ===================== -->
+<div class="view active" id="view-dashboard">
+
+  <div class="card">
+    <h2>Study Timer</h2>
+    <div class="timer-display" id="timerDisplay">00:00:00</div>
+    <div class="timer-controls">
+      <button class="btn btn-start" id="btnStart">▶ Start</button>
+      <button class="btn btn-pause" id="btnPause">⏸ Pause</button>
+      <button class="btn btn-log" id="btnLog">💾 Log & Reset</button>
+    </div>
+    <div class="today-log" id="todayLog">Today logged: 0h 0m</div>
+    <div class="today-log" id="todayRealLog" style="margin-top:2px;"></div>
+    <div style="display:flex; align-items:center; justify-content:center; gap:8px; margin-top:10px;">
+      <label for="speedSelect" class="muted" style="font-size:12px;">Lecture playback speed:</label>
+      <select id="speedSelect" class="date-picker" style="padding:5px 8px; font-size:12px;">
+        <option value="1">1x</option>
+        <option value="1.25">1.25x</option>
+        <option value="1.5">1.5x</option>
+        <option value="1.75">1.75x</option>
+        <option value="2">2x</option>
+      </select>
+    </div>
+    <div class="muted" style="text-align:center; font-size:11px; margin-top:4px;">
+      Checking off an item still logs its full curriculum length toward your pace vs. the phase plan — the speed setting only estimates the real clock time you'll actually spend watching.
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Remaining Hours by Subject</h2>
+    <table class="subject-table" id="subjectTable"></table>
+  </div>
+
+  <div class="card">
+    <h2>This Week</h2>
+    <div class="muted" id="weekLabel"></div>
+    <div class="progress-outer"><div class="progress-inner" id="weekBar" style="width:0%"></div></div>
+    <div class="muted" id="weekNumbers"></div>
+  </div>
+
+  <div class="card">
+    <h2>Last 7 Days</h2>
+    <div class="bars" id="sevenDayBars"></div>
+  </div>
+
+  <div class="card">
+    <h2>All Phases</h2>
+    <table class="subject-table" id="phaseTable"></table>
+    <div id="leftoverWarning"></div>
+  </div>
+</div>
+
+<!-- ===================== CHECKLIST ===================== -->
+<div class="view" id="view-checklist">
+  <div class="card">
+    <div class="date-nav">
+      <button id="prevDay">◀</button>
+      <input type="date" class="date-picker" id="datePicker">
+      <button id="nextDay">▶</button>
+    </div>
+    <div id="dayBannerWrap"></div>
+    <div id="itemList"></div>
+    <form class="add-form" id="addForm">
+      <select name="subject">
+        <option value="Audit">Audit</option>
+        <option value="FM">FM</option>
+        <option value="SM">SM</option>
+        <option value="Revision">Revision</option>
+      </select>
+      <input type="text" name="name" placeholder="Item name" required>
+      <input type="number" name="hours" placeholder="hrs" step="0.1" min="0.1" required>
+      <button type="submit" class="btn btn-log" style="padding:8px 12px;">+ Add</button>
+    </form>
+  </div>
+</div>
+
+<!-- ===================== RPG ===================== -->
+<div class="view" id="view-rpg">
+  <div class="rpg-wrap">
+    <h2>⚔️ The Path to Membership</h2>
+    <div class="rpg-level">
+      <div class="rpg-badge" id="rpgBadge">Lv1</div>
+      <div style="flex:1;">
+        <div class="xp-outer"><div class="xp-inner" id="xpBar" style="width:0%"></div></div>
+        <div class="xp-caption" id="xpCaption">0 / 192h XP</div>
+      </div>
+    </div>
+    <div class="quest-list" id="questList"></div>
+  </div>
+</div>
+
+<!-- ===================== QUEST MAP ===================== -->
+<div class="view" id="view-map">
+  <div class="map-wrap">
+    <h2>🗺 The Group 2 Trail</h2>
+    <div class="path" id="mapPath"></div>
+  </div>
+</div>
+
+<script>
+/* ==========================================================================
+   DATA — hardcoded from the study plan (do not regenerate/estimate)
+   ========================================================================== */
+const TODAY = new Date("2026-08-11T00:00:00");
+
+const REVISION = [
+  ["SA_300 Part 1 Revision Session",1.04],["SA_230 Revision Session",0.90],
+  ["SA_300 Part 2 Revision Session",1.03],["Chapter_1 Part 1 Revision Session",1.13],
+  ["SA_210 Revision Session",1.14],["SA_220 Revision Session",0.97],
+  ["Chapter_1 Part 2 Revision Session",1.22],["SQC_1 Revision Session",0.97]
+].map(([n,h])=>({name:n,hours:h}));
+
+const AUDIT_LECTURES = [
+["18B – Chapter 1 (cont.)",1.77],["19A – Chapter 1",1.76],["19B – Chapter 1",1.80],["19C – Chapter 1",1.55],
+["20A – Chapter 11",1.77],["20B – Chapter 11",1.74],["21A – Chapter 11",1.70],["21B – Chapter 11",1.72],
+["22A – Chapter 11",1.68],["22B – Chapter 11",1.67],["23A – Chapter 11",1.77],["23B – Chapter 11",1.55],
+["24A – SA 510",1.80],["24B – SA510 & SA520",1.76],["25A – SA 520",1.58],["25B – SA 520",1.80],
+["26A – Chapter 5",1.76],["26B – Chapter 5",1.85],["27A – Chapter 5",1.29],["27B – Chapter 5",2.05],
+["28A – Chapter 5",2.16],["28B – Chapter 5",2.12],["29A – Chapter 5",2.06],["29B – Chapter 5",1.99],
+["30A – SA 580",1.83],["30B – SA 580",1.96],["31A – SA 501",1.92],["31B – SA 501",1.47],["31C – SA 500",0.52],
+["32A – SA 500",2.10],["32B – SA 500",0.96],["33A – SA 330",1.43],["33B – SA 260",2.33],
+["34A – Chapter 9",1.72],["34B – Chapter 9",2.12],["35 – Chapter 9",2.36],["36 – Chapter 9",2.41],
+["37 – Chapter 9",1.86],["38 – Chapter 9",2.35],["39A – SA 320",2.32],["39B – SA320 & SA450",2.26],
+["40A – SA 700",2.33],["40B – SA 710",2.31],["41A – SA710 & SA600",2.26],["41B – SA 530",2.29],
+["42A – SA 530",2.30],["42B – SA 530",1.83],["43A – SA 530",1.20],["43B – SA 265",1.13],
+["44A – SA 265",1.03],["44B – Chapter 3",1.31],["45A – Chapter 3",2.34],["45B – Chapter 3",1.20],
+["46A – Chapter 3",1.16],["46B – Chapter 3",1.64],["47A – Chapter 3",1.57],["47B – SA 610",1.62],
+["48A – SA 610",1.35],["48B – SA 550",1.33],["49A – Bank Audit",1.52],["49B – Bank Audit",1.55],
+["50A – Bank Audit",1.55],["50B – Bank Audit",1.73],["51A – Bank Audit",1.71],["51B – Bank Audit",2.07],
+["52A – CARO 2020",2.21],["52B – CARO 2020",1.40],["52C – CARO 2020",1.49]
+].map(([n,h])=>({name:n,hours:h}));
+
+const AUDIT_BONUS = [
+["B1 – Sec.143 (Ch.8)",2.47],["B2 – Sec.143 (Ch.8)",2.95],["B3.1 – Ch.5 Sch III",1.34],
+["B3.2 – Ch.5 Sch III",1.03],["B3.3 – Misc Topics",0.60]
+].map(([n,h])=>({name:n,hours:h}));
+
+const FM_ITEMS = [
+["Ch4 L1 – Mgmt of Working Capital",1.48],["Ch4 L2 – Mgmt of Working Capital",2.32],["Ch4 L3 – Mgmt of Working Capital",2.77],
+["Ch5 L1 – Mgmt of Cash",2.93],["Ch5 L2 – Mgmt of Cash",2.10],
+["Ch6 L1 – Ratio Analysis",2.17],["Ch6 L2 – Ratio Analysis",1.22],["Ch6 L3 – Ratio Analysis",2.32],["Ch6 L4 – Ratio Analysis",1.55],
+["Ch7 L1 – Investment Decisions",2.30],["Ch7 L2 – Investment Decisions",3.07],["Ch7 L3 – Investment Decisions",2.33],
+["Ch7 L4 – Investment Decisions",2.77],["Ch7 L5 – Investment Decisions",2.68],["Ch7 L6 – Investment Decisions",2.40],
+["Ch8 L1 – Cost of Capital",3.20],["Ch8 L2 – Cost of Capital",2.52],
+["Ch9 L1 – Capital Structure",2.17],["Ch9 L2 – Capital Structure",2.07],
+["Ch10 L1 – Dividend Decisions",2.85]
+].map(([n,h])=>({name:n,hours:h}));
+
+// SM exact durations aren't available — ~1h/video estimate, as noted in the source plan.
+const SM_ITEMS = [
+["Ch2 Video 1 (est.)",1],["Ch2 Video 2 (est.)",1],["Ch2 Video 3 (est.)",1],
+["Ch3 Video 1 (est.)",1],["Ch3 Video 2 (est.)",1],
+["Ch4 Video 2 (est.)",1],
+["Ch5 Video 1 (est.)",1],["Ch5 Video 2 (est.)",1]
+].map(([n,h])=>({name:n,hours:h}));
+
+const PHASES = [
+  {id:"p11aug", label:"11 Aug (partial)", start:"2026-08-11", end:"2026-08-11", target:3.53},
+  {id:"p1", label:"Phase 1 — Front-loaded week", start:"2026-08-12", end:"2026-08-17", target:55},
+  {id:"p2", label:"Phase 2 — Standard pace", start:"2026-08-18", end:"2026-08-24", target:46},
+  {id:"p3a", label:"Phase 3a — Normal pace (no travel yet)", start:"2026-08-25", end:"2026-08-27", target:22},
+  {id:"travel", label:"🧳 Travel — light / portable only", start:"2026-08-28", end:"2026-08-30", target:9},
+  {id:"p3c", label:"Back from travel — catch-up", start:"2026-08-31", end:"2026-08-31", target:8},
+  {id:"p4", label:"Phase 4 — Steady final push", start:"2026-09-01", end:"2026-09-06", target:56.92},
+  {id:"p5", label:"Phase 5 — Final push (revision)", start:"2026-09-07", end:"2026-09-09", target:10},
+  {id:"exam1", label:"🎓 Audit & Ethics Exam", start:"2026-09-10", end:"2026-09-10", target:0, exam:true},
+  {id:"p6", label:"Phase 6 — FM/SM recap", start:"2026-09-11", end:"2026-09-11", target:6},
+  {id:"exam2", label:"🎓 FM & SM Exam", start:"2026-09-12", end:"2026-09-12", target:0, exam:true},
+];
+
+const TRAVEL_DAYS = new Set(["2026-08-28","2026-08-29","2026-08-30"]);
+
+const TOTAL_GOAL_HOURS = 192; // fixed real target per the source plan
+
+/* ==========================================================================
+   DATE HELPERS
+   ========================================================================== */
+function dstr(d){ return d.toISOString().slice(0,10); }
+function parseD(s){ return new Date(s+"T00:00:00"); }
+function addDays(d,n){ const r=new Date(d); r.setDate(r.getDate()+n); return r; }
+function dateRangeArr(start,end){
+  const out=[]; let cur=parseD(start); const last=parseD(end);
+  while(cur<=last){ out.push(dstr(cur)); cur=addDays(cur,1); }
+  return out;
+}
+function phaseForDate(ds){ return PHASES.find(p=>ds>=p.start && ds<=p.end); }
+function isWeekend(ds){ const d=parseD(ds).getDay(); return d===0||d===6; }
+
+/* ==========================================================================
+   SCHEDULE GENERATION (runs once, cached in localStorage)
+   ========================================================================== */
+function generateSchedule(){
+  const schedule = {};
+  const leftover = {audit:0, fm:0, sm:0};
+
+  // clone queues
+  const auditLecturesCopy = AUDIT_LECTURES.slice();
+  const aug11Items = auditLecturesCopy.splice(0,2); // 18B, 19A
+  const auditQueue = [...REVISION, ...auditLecturesCopy, ...AUDIT_BONUS];
+  const fmQueue = FM_ITEMS.slice();
+  const smQueue = SM_ITEMS.slice();
+  // Hold back one SM video per travel day so travel days actually get portable content
+  // instead of every SM item being front-loaded onto the first weekend.
+  const reservedSM = smQueue.splice(-TRAVEL_DAYS.size);
+
+  // 11 Aug — special fixed day
+  schedule["2026-08-11"] = aug11Items.map((it,i)=>({
+    id:"d0-"+i, subject:"Audit", name:it.name, hours:it.hours, done:false
+  }));
+
+  const OVERFLOW = 0.667; // ~40 min
+
+  function pullAlternating(items, qa, tagA, qb, tagB, target, state){
+    let turn = 0;
+    while(state.sum < target + OVERFLOW){
+      const useA = turn % 2 === 0;
+      const q = useA ? qa : qb, tag = useA ? tagA : tagB;
+      if(q.length===0){
+        const other = useA?qb:qa, otherTag = useA?tagB:tagA;
+        if(other.length===0) break;
+        turn++; continue;
+      }
+      const next = q[0];
+      if(state.sum===0 || state.sum+next.hours<=target+OVERFLOW){
+        items.push({subject:tag, name:next.name, hours:next.hours, done:false});
+        state.sum += next.hours; q.shift(); turn++;
+      } else break;
+    }
+  }
+  function pullSingle(items, q, tag, target, state){
+    while(q.length>0 && state.sum < target + OVERFLOW){
+      const next=q[0];
+      if(state.sum===0 || state.sum+next.hours<=target+OVERFLOW){
+        items.push({subject:tag, name:next.name, hours:next.hours, done:false});
+        state.sum += next.hours; q.shift();
+      } else break;
+    }
+  }
+
+  const contentDays = dateRangeArr("2026-08-12","2026-09-06");
+  let idc = 0;
+  contentDays.forEach(ds=>{
+    const phase = phaseForDate(ds);
+    const numDays = dateRangeArr(phase.start, phase.end).length;
+    const target = phase.target / numDays;
+    const items = [];
+    const state = {sum:0};
+
+    if(TRAVEL_DAYS.has(ds)){
+      pullSingle(items, reservedSM, "SM", target, state);
+      if(state.sum < target) pullSingle(items, smQueue, "SM", target, state);
+      if(state.sum < target) pullAlternating(items, auditQueue, "Audit", fmQueue, "FM", target, state);
+    } else if(isWeekend(ds)){
+      pullSingle(items, smQueue, "SM", target, state);
+      if(state.sum < target) pullAlternating(items, auditQueue, "Audit", fmQueue, "FM", target, state);
+    } else {
+      pullAlternating(items, auditQueue, "Audit", fmQueue, "FM", target, state);
+      if(state.sum < target) pullSingle(items, smQueue, "SM", target, state);
+    }
+
+    // Active Recall block — every day from 12 Aug onward
+    const prevDs = dstr(addDays(parseD(ds),-1));
+    const prevItems = schedule[prevDs] || [];
+    const counts = {};
+    prevItems.forEach(it=>{ counts[it.subject]=(counts[it.subject]||0)+1; });
+    const parts = Object.keys(counts).map(k=>`${k.toUpperCase()} ×${counts[k]}`);
+    const recallDesc = parts.length ? `Revise yesterday: ${parts.join(", ")}` : "Revise yesterday's material";
+
+    items.push({subject:"Revision", name:"1h Active Recall — "+recallDesc, hours:1, done:false});
+
+    schedule[ds] = items.map((it,i)=>({id:ds+"-"+i, ...it}));
+    idc++;
+  });
+
+  // leftover after main content window
+  leftover.audit = auditQueue.reduce((s,i)=>s+i.hours,0);
+  leftover.fm = fmQueue.reduce((s,i)=>s+i.hours,0);
+  leftover.sm = smQueue.reduce((s,i)=>s+i.hours,0) + reservedSM.reduce((s,i)=>s+i.hours,0);
+  if(leftover.audit>0) auditQueue.forEach((it,i)=> auditQueue[i]=it); // no-op, kept for clarity
+
+  // Phase 5 — revision only, fixed descriptive tasks (estimates, editable)
+  schedule["2026-09-07"] = [{id:"p5-0",subject:"Revision",name:"Audit Full Revision — weak chapters & SAs",hours:4,done:false}];
+  schedule["2026-09-08"] = [{id:"p5-1",subject:"Revision",name:"Mock Paper — Audit & Ethics",hours:3,done:false}];
+  schedule["2026-09-09"] = [{id:"p5-2",subject:"Revision",name:"CARO 2020 Recap + Weak Areas Pass",hours:3,done:false}];
+
+  // Exam day — no items
+  schedule["2026-09-10"] = [];
+
+  // Phase 6 — FM/SM recap
+  schedule["2026-09-11"] = [
+    {id:"p6-0",subject:"Revision",name:"FM Formula Recap",hours:2,done:false},
+    {id:"p6-1",subject:"Revision",name:"SM Keyword Recap",hours:2,done:false},
+    {id:"p6-2",subject:"Revision",name:"Mock Test — FM & SM",hours:2,done:false},
+  ];
+  schedule["2026-09-12"] = [];
+
+  return {schedule, leftover, generatedAt: Date.now(), version:3};
+}
+
+/* ==========================================================================
+   LOCAL STORAGE (fast local cache — GitHub is the source of truth when connected)
+   ========================================================================== */
+const LS_SCHEDULE = "gg_schedule_v3";
+const LS_SESSIONS = "gg_sessions";
+const LS_THEME = "gg_theme";
+const LS_TAB = "gg_tab";
+const LS_SPEED = "gg_speed";
+
+function loadSchedule(){
+  try{
+    const raw = localStorage.getItem(LS_SCHEDULE);
+    if(raw){ const parsed = JSON.parse(raw); if(parsed.version===3) return parsed; }
+  }catch(e){}
+  const fresh = generateSchedule();
+  localStorage.setItem(LS_SCHEDULE, JSON.stringify(fresh));
+  return fresh;
+}
+function saveSchedule(state){ localStorage.setItem(LS_SCHEDULE, JSON.stringify(state)); }
+
+function loadSessions(){
+  try{ return JSON.parse(localStorage.getItem(LS_SESSIONS)) || []; }catch(e){ return []; }
+}
+function saveSessions(arr){ localStorage.setItem(LS_SESSIONS, JSON.stringify(arr)); }
+
+let APP = loadSchedule();
+let SESSIONS = loadSessions();
+
+/* ==========================================================================
+   GITHUB CLOUD SYNC
+   Data lives in a JSON file (study-tracker-data.json) at the root of a repo the
+   user controls, accessed via GitHub's Contents API with a personal access
+   token. This makes the app's data cross-browser/cross-device instead of
+   tied to one machine's localStorage.
+   ========================================================================== */
+const GH_LS_TOKEN = "gg_gh_token";
+const GH_LS_OWNER = "gg_gh_owner";
+const GH_LS_REPO  = "gg_gh_repo";
+const GH_LS_SHA   = "gg_gh_sha";
+const GH_PATH = "study-tracker-data.json";
+
+function ghConfigured(){
+  return !!(localStorage.getItem(GH_LS_TOKEN) && localStorage.getItem(GH_LS_OWNER) && localStorage.getItem(GH_LS_REPO));
+}
+function ghConfig(){
+  return {
+    token: localStorage.getItem(GH_LS_TOKEN),
+    owner: localStorage.getItem(GH_LS_OWNER),
+    repo: localStorage.getItem(GH_LS_REPO),
+  };
+}
+function b64EncodeUnicode(str){ return btoa(unescape(encodeURIComponent(str))); }
+function b64DecodeUnicode(str){ return decodeURIComponent(escape(atob(str))); }
+
+async function ghFetchFile(){
+  const cfg = ghConfig();
+  const url = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${GH_PATH}`;
+  const res = await fetch(url, {
+    headers: { "Authorization": `Bearer ${cfg.token}`, "Accept": "application/vnd.github+json" }
+  });
+  if(res.status===404) return null;
+  if(!res.ok){
+    const body = await res.text().catch(()=> "");
+    throw new Error(`GitHub fetch failed (${res.status}): ${body.slice(0,140)}`);
+  }
+  const data = await res.json();
+  localStorage.setItem(GH_LS_SHA, data.sha);
+  return JSON.parse(b64DecodeUnicode(data.content));
+}
+
+async function ghPutFile(obj, message){
+  const cfg = ghConfig();
+  const url = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${GH_PATH}`;
+  const body = {
+    message: message || "Update study tracker data",
+    content: b64EncodeUnicode(JSON.stringify(obj, null, 2)),
+  };
+  const sha = localStorage.getItem(GH_LS_SHA);
+  if(sha) body.sha = sha;
+  const res = await fetch(url, {
+    method: "PUT",
+    headers: {
+      "Authorization": `Bearer ${cfg.token}`,
+      "Accept": "application/vnd.github+json",
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(body)
+  });
+  if(!res.ok){
+    const errBody = await res.json().catch(()=>({}));
+    throw new Error(`GitHub save failed (${res.status}): ${errBody.message || "unknown error"}`);
+  }
+  const data = await res.json();
+  localStorage.setItem(GH_LS_SHA, data.content.sha);
+  return data;
+}
+
+function buildSyncPayload(){
+  return {
+    version: 3,
+    schedule: APP.schedule,
+    leftover: APP.leftover,
+    sessions: SESSIONS,
+    settings: {
+      theme: document.body.getAttribute("data-theme"),
+      speed: localStorage.getItem(LS_SPEED) || "1",
+    },
+    updatedAt: new Date().toISOString()
+  };
+}
+function applySyncPayload(obj){
+  if(obj.schedule){ APP.schedule = obj.schedule; APP.leftover = obj.leftover || {audit:0,fm:0,sm:0}; APP.version = 3; }
+  if(obj.sessions) SESSIONS = obj.sessions;
+  if(obj.settings){
+    if(obj.settings.theme) applyTheme(obj.settings.theme);
+    if(obj.settings.speed) localStorage.setItem(LS_SPEED, obj.settings.speed);
+  }
+  saveSchedule(APP);
+  saveSessions(SESSIONS);
+}
+
+let syncDirty = false, syncTimer = null, syncInFlight = false;
+function updateSyncBadge(state, detail){
+  const badge = document.getElementById("syncBadge");
+  if(!badge) return;
+  badge.classList.remove("synced","syncing","error");
+  if(!ghConfigured()){ badge.textContent = "💻 Local only — tap to connect"; return; }
+  if(state==="syncing"){ badge.classList.add("syncing"); badge.textContent = "☁️ Syncing…"; }
+  else if(state==="error"){ badge.classList.add("error"); badge.textContent = "⚠️ Sync error — tap for details"; badge.title = detail || ""; }
+  else { badge.classList.add("synced"); badge.textContent = "☁️ Synced"; }
+}
+
+function markDirty(){
+  syncDirty = true;
+  if(!ghConfigured()) { updateSyncBadge(); return; }
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(flushSync, 1800);
+}
+
+async function flushSync(){
+  if(!ghConfigured() || syncInFlight) return;
+  syncInFlight = true;
+  updateSyncBadge("syncing");
+  try{
+    await ghPutFile(buildSyncPayload(), "Update study tracker data");
+    syncDirty = false;
+    updateSyncBadge("synced");
+  }catch(e){
+    console.error(e);
+    updateSyncBadge("error", e.message);
+  }finally{
+    syncInFlight = false;
+  }
+}
+
+document.addEventListener("visibilitychange", ()=>{
+  if(document.visibilityState==="hidden" && syncDirty) flushSync();
+});
+window.addEventListener("beforeunload", ()=>{
+  if(syncDirty) flushSync(); // best-effort; may not always complete before unload
+});
+
+async function initialCloudLoad(){
+  if(!ghConfigured()){ updateSyncBadge(); return; }
+  updateSyncBadge("syncing");
+  try{
+    const remote = await ghFetchFile();
+    if(remote){
+      applySyncPayload(remote);
+    } else {
+      await ghPutFile(buildSyncPayload(), "Initialize study tracker data");
+    }
+    updateSyncBadge("synced");
+  }catch(e){
+    console.error(e);
+    updateSyncBadge("error", e.message);
+    // keep whatever was already loaded from local cache as a fallback
+  }
+  renderChecklist(); renderDashboard();
+}
+
+/* ==========================================================================
+   TIMER
+   ========================================================================== */
+let timerSeconds = 0, timerInterval = null, timerRunning = false;
+const timerDisplay = document.getElementById("timerDisplay");
+function fmtHMS(s){
+  const h=String(Math.floor(s/3600)).padStart(2,"0");
+  const m=String(Math.floor((s%3600)/60)).padStart(2,"0");
+  const sec=String(s%60).padStart(2,"0");
+  return `${h}:${m}:${sec}`;
+}
+function tick(){ timerSeconds++; timerDisplay.textContent = fmtHMS(timerSeconds); }
+document.getElementById("btnStart").onclick=()=>{
+  if(timerRunning) return;
+  timerRunning=true; timerInterval=setInterval(tick,1000);
+};
+document.getElementById("btnPause").onclick=()=>{
+  timerRunning=false; clearInterval(timerInterval);
+};
+document.getElementById("btnLog").onclick=()=>{
+  timerRunning=false; clearInterval(timerInterval);
+  if(timerSeconds>0){
+    const minutes = Math.round(timerSeconds/60);
+    const today = dstr(new Date());
+    SESSIONS.push({date:today, minutes, source:"timer"});
+    saveSessions(SESSIONS);
+    markDirty();
+  }
+  timerSeconds=0; timerDisplay.textContent="00:00:00";
+  renderDashboard();
+};
+
+/* ==========================================================================
+   DASHBOARD RENDER
+   ========================================================================== */
+function subjectRemaining(){
+  const rem = {Audit:0, FM:0, SM:0};
+  Object.values(APP.schedule).forEach(items=>{
+    items.forEach(it=>{
+      if(!it.done && rem.hasOwnProperty(it.subject)) rem[it.subject]+=it.hours;
+    });
+  });
+  return rem;
+}
+function hoursMinutes(h){
+  const totalMin = Math.round(h*60);
+  return `${Math.floor(totalMin/60)}h ${totalMin%60}m`;
+}
+function loggedInRange(start,end){
+  return SESSIONS.filter(s=>s.date>=start && s.date<=end).reduce((sum,s)=>sum+s.minutes,0)/60;
+}
+function totalLogged(){ return SESSIONS.reduce((s,x)=>s+x.minutes,0)/60; }
+
+function renderSubjectTable(){
+  const rem = subjectRemaining();
+  const total = rem.Audit+rem.FM+rem.SM;
+  const rows = [
+    ["audit","Audit",rem.Audit],["fm","FM",rem.FM],["sm","SM",rem.SM]
+  ];
+  let html = "<tr><th>Subject</th><th>Remaining</th></tr>";
+  rows.forEach(([cls,label,val])=>{
+    html += `<tr><td><span class="dot ${cls}"></span>${label}</td><td>${hoursMinutes(val)}</td></tr>`;
+  });
+  html += `<tr><td><b>Total</b></td><td><b>${hoursMinutes(total)}</b></td></tr>`;
+  document.getElementById("subjectTable").innerHTML = html;
+}
+
+function renderWeek(){
+  const todayStr = dstr(new Date());
+  const phase = phaseForDate(todayStr) || PHASES[0];
+  document.getElementById("weekLabel").textContent = `${phase.label} (${phase.start} → ${phase.end})`;
+  const logged = loggedInRange(phase.start, phase.end);
+  const pct = phase.target>0 ? Math.min(100,(logged/phase.target)*100) : 100;
+  document.getElementById("weekBar").style.width = pct+"%";
+  document.getElementById("weekNumbers").textContent =
+    phase.target>0 ? `${hoursMinutes(logged)} logged of ${hoursMinutes(phase.target)} target` : "Revision/exam window — no fixed hour target";
+}
+
+function renderSevenDay(){
+  const days = [];
+  for(let i=6;i>=0;i--) days.push(dstr(addDays(new Date(),-i)));
+  const vals = days.map(d=> SESSIONS.filter(s=>s.date===d).reduce((s,x)=>s+x.minutes,0)/60 );
+  const max = Math.max(1,...vals);
+  let html="";
+  days.forEach((d,i)=>{
+    const h = Math.max(2, (vals[i]/max)*90);
+    html += `<div class="bar-col"><div class="bar-fill" style="height:${h}px"></div><div class="bar-label">${d.slice(5)}</div></div>`;
+  });
+  document.getElementById("sevenDayBars").innerHTML = html;
+}
+
+function renderPhaseTable(){
+  let html = "<tr><th>Phase</th><th>Logged</th><th>Target</th></tr>";
+  PHASES.forEach(p=>{
+    const logged = loggedInRange(p.start,p.end);
+    html += `<tr><td>${p.label}</td><td>${hoursMinutes(logged)}</td><td>${p.target>0?hoursMinutes(p.target):"—"}</td></tr>`;
+  });
+  document.getElementById("phaseTable").innerHTML = html;
+
+  const lo = APP.leftover || {audit:0,fm:0,sm:0};
+  const totalLeftover = (lo.audit||0)+(lo.fm||0)+(lo.sm||0);
+  const warnDiv = document.getElementById("leftoverWarning");
+  if(totalLeftover > 0.5){
+    warnDiv.innerHTML = `<div class="warning">⚠️ ${hoursMinutes(totalLeftover)} of content didn't fit inside 12 Aug–6 Sep at these targets — Phase 4 is already the heaviest week. Consider raising daily targets slightly or moving some Phase 3 (travel week) hours forward.</div>`;
+  } else {
+    warnDiv.innerHTML = "";
+  }
+}
+
+function renderTodayLog(){
+  const today = dstr(new Date());
+  const mins = SESSIONS.filter(s=>s.date===today).reduce((s,x)=>s+x.minutes,0);
+  document.getElementById("todayLog").textContent = `Today logged: ${Math.floor(mins/60)}h ${mins%60}m`;
+
+  const speed = parseFloat(localStorage.getItem(LS_SPEED) || "1");
+  const checklistMins = SESSIONS.filter(s=>s.date===today && s.source==="checklist").reduce((s,x)=>s+x.minutes,0);
+  const timerMins = mins - checklistMins;
+  const realMins = Math.round(checklistMins/speed) + timerMins;
+  const realDiv = document.getElementById("todayRealLog");
+  if(speed !== 1 && checklistMins > 0){
+    realDiv.textContent = `≈ ${Math.floor(realMins/60)}h ${realMins%60}m real watch time at ${speed}x`;
+  } else {
+    realDiv.textContent = "";
+  }
+}
+
+function renderCountdown(){
+  const examAudit = parseD("2026-09-10");
+  const today0 = new Date(); today0.setHours(0,0,0,0);
+  const diff = Math.round((examAudit - today0)/86400000);
+  document.getElementById("countdownLabel").textContent =
+    diff>=0 ? `T-minus ${diff} day${diff===1?"":"s"} to Audit & Ethics` : "Exams in progress — good luck!";
+}
+
+function renderDashboard(){
+  renderSubjectTable(); renderWeek(); renderSevenDay(); renderPhaseTable(); renderTodayLog(); renderCountdown();
+}
+
+/* ==========================================================================
+   CHECKLIST RENDER
+   ========================================================================== */
+let currentDate = dstr(new Date());
+const datePicker = document.getElementById("datePicker");
+datePicker.min = "2026-08-11";
+datePicker.max = "2026-09-12";
+
+function findItem(id){
+  for(const ds in APP.schedule){
+    const it = APP.schedule[ds].find(x=>x.id===id);
+    if(it) return {ds, it};
+  }
+  return null;
+}
+
+function renderChecklist(){
+  datePicker.value = currentDate;
+  const items = APP.schedule[currentDate] || [];
+  const phase = phaseForDate(currentDate);
+  const bannerWrap = document.getElementById("dayBannerWrap");
+  bannerWrap.innerHTML = "";
+  if(phase && phase.exam){
+    bannerWrap.innerHTML = `<div class="day-banner exam">${phase.label} — no study items today. You've got this. 🎯</div>`;
+  } else if(items.length && items.every(i=>i.done)){
+    bannerWrap.innerHTML = `<div class="day-banner complete">🎉 Day complete!</div>`;
+  }
+
+  const speed = parseFloat(localStorage.getItem(LS_SPEED) || "1");
+  const list = document.getElementById("itemList");
+  if(items.length===0 && !(phase&&phase.exam)){
+    list.innerHTML = `<div class="muted" style="padding:10px 4px;">No items yet — add one below.</div>`;
+    return;
+  }
+  list.innerHTML = items.map(it=>{
+    const tagCls = it.subject.toLowerCase();
+    const realH = it.hours/speed;
+    const realStr = speed!==1 ? ` <span style="opacity:.7">(≈${realH.toFixed(1)}h @ ${speed}x)</span>` : "";
+    return `
+    <div class="item-row" data-id="${it.id}">
+      <div class="checkbox ${it.done?'done':''}" data-action="toggle" data-id="${it.id}">${it.done?'✓':''}</div>
+      <div class="item-body">
+        <div class="item-name ${it.done?'done':''}" data-name>${escapeHtml(it.name)}</div>
+        <div class="item-meta">
+          <span class="tag ${tagCls}">${it.subject}</span>
+          <span>${it.hours}h${realStr}</span>
+        </div>
+      </div>
+      <div class="item-actions">
+        <button class="icon-btn" data-action="rename" data-id="${it.id}">✎</button>
+        <button class="icon-btn" data-action="delete" data-id="${it.id}">🗑</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+function escapeHtml(s){ return s.replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+document.getElementById("itemList").addEventListener("click",(e)=>{
+  const btn = e.target.closest("[data-action]");
+  if(!btn) return;
+  const action = btn.dataset.action, id = btn.dataset.id;
+  const found = findItem(id);
+  if(!found) return;
+  const {ds, it} = found;
+
+  if(action==="toggle"){
+    it.done = !it.done;
+    saveSchedule(APP);
+    if(it.done){
+      // Checking an item off auto-logs its hours as a session for that day,
+      // so the Dashboard's "logged" totals and XP move immediately without
+      // requiring a separate timer run for content you already watched.
+      SESSIONS.push({date:ds, minutes:Math.round(it.hours*60), source:"checklist", itemId:it.id});
+    } else {
+      // Unchecking removes only the auto-logged session tied to this item —
+      // any real timer sessions you logged that day are left untouched.
+      SESSIONS = SESSIONS.filter(s=>!(s.source==="checklist" && s.itemId===it.id));
+    }
+    saveSessions(SESSIONS);
+    markDirty();
+    btn.classList.add("pop");
+    setTimeout(()=>btn.classList.remove("pop"),200);
+    if(it.done){
+      const plus = document.createElement("div");
+      plus.className="floatplus"; plus.textContent="+1 ✨";
+      btn.closest(".item-row").appendChild(plus);
+      setTimeout(()=>plus.remove(),800);
+    }
+    renderChecklist(); renderDashboard();
+  } else if(action==="delete"){
+    APP.schedule[ds] = APP.schedule[ds].filter(x=>x.id!==id);
+    SESSIONS = SESSIONS.filter(s=>!(s.source==="checklist" && s.itemId===id));
+    saveSessions(SESSIONS);
+    saveSchedule(APP); markDirty(); renderChecklist(); renderDashboard();
+  } else if(action==="rename"){
+    const newName = prompt("Rename item:", it.name);
+    if(newName && newName.trim()){
+      it.name = newName.trim();
+      saveSchedule(APP); markDirty(); renderChecklist();
+    }
+  }
+});
+
+document.getElementById("addForm").addEventListener("submit",(e)=>{
+  e.preventDefault();
+  const f = e.target;
+  const subject = f.subject.value, name = f.name.value.trim(), hours = parseFloat(f.hours.value);
+  if(!name || !hours) return;
+  if(!APP.schedule[currentDate]) APP.schedule[currentDate] = [];
+  const newId = currentDate+"-x"+Date.now();
+  APP.schedule[currentDate].push({id:newId, subject, name, hours, done:false});
+  saveSchedule(APP);
+  markDirty();
+  f.reset();
+  renderChecklist(); renderDashboard();
+});
+
+document.getElementById("prevDay").onclick=()=>{ currentDate = dstr(addDays(parseD(currentDate),-1)); if(currentDate<"2026-08-11") currentDate="2026-08-11"; renderChecklist(); };
+document.getElementById("nextDay").onclick=()=>{ currentDate = dstr(addDays(parseD(currentDate),1)); if(currentDate>"2026-09-12") currentDate="2026-09-12"; renderChecklist(); };
+datePicker.onchange=()=>{ currentDate = datePicker.value; renderChecklist(); };
+
+/* ==========================================================================
+   RPG TAB
+   ========================================================================== */
+function levelFromHours(h){ return Math.max(1, Math.floor(h/16)+1); } // ~12 levels over 192h
+function renderRPG(){
+  const logged = totalLogged();
+  const pct = Math.min(100, (logged/TOTAL_GOAL_HOURS)*100);
+  const lvl = levelFromHours(logged);
+  document.getElementById("rpgBadge").textContent = "Lv"+lvl;
+  document.getElementById("xpBar").style.width = pct+"%";
+  document.getElementById("xpCaption").textContent = `${hoursMinutes(logged)} / ${TOTAL_GOAL_HOURS}h XP`;
+
+  const todayStr = dstr(new Date());
+  let html = "";
+  PHASES.forEach(p=>{
+    const state = p.end < todayStr ? "done" : (todayStr>=p.start && todayStr<=p.end ? "active" : "locked");
+    const logged = loggedInRange(p.start,p.end);
+    html += `
+    <div class="quest ${p.exam?'boss':''}" data-phase-start="${p.start}" style="cursor:pointer;">
+      <div>
+        <div class="quest-name">${p.exam?'👹 BOSS BATTLE — ':'📜 Quest — '}${p.label}</div>
+        <div class="quest-sub">${p.start} → ${p.end}${p.target>0?` · ${hoursMinutes(p.target)} target`:''} · tap to open checklist</div>
+      </div>
+      <div class="quest-status ${state}">${state==='done'?'Cleared':state==='active'?'In Progress':'Locked'}</div>
+    </div>`;
+  });
+  document.getElementById("questList").innerHTML = html;
+}
+
+/* ==========================================================================
+   QUEST MAP TAB
+   ========================================================================== */
+function renderMap(){
+  const rem = subjectRemaining();
+  let html = "";
+  PHASES.forEach(p=>{
+    const logged = loggedInRange(p.start,p.end);
+    const pct = p.target>0 ? Math.min(100,(logged/p.target)*100) : 100;
+    const cls = p.exam ? "boss" : (p.id.startsWith("p")|| p.id==="p11aug" ? "audit" : "audit");
+    html += `
+    <div class="stop ${p.exam?'boss':'audit'}" data-phase-start="${p.start}" style="cursor:pointer;">
+      <div class="stop-card ${p.exam?'boss':''}">
+        <div class="stop-title">${p.exam?'👹 '+p.label:p.label}</div>
+        <div class="stop-meta">${p.start} → ${p.end} · tap to open checklist</div>
+        ${p.target>0?`<div class="stop-progress"><div class="stop-progress-inner" style="width:${pct}%"></div></div>`:''}
+      </div>
+    </div>`;
+  });
+  document.getElementById("mapPath").innerHTML = html;
+}
+
+function jumpToChecklistDate(dateStr){
+  currentDate = dateStr;
+  const tabBtn = document.querySelector('.tab-btn[data-tab="checklist"]');
+  if(tabBtn) tabBtn.click();
+}
+document.getElementById("questList").addEventListener("click",(e)=>{
+  const el = e.target.closest("[data-phase-start]");
+  if(el) jumpToChecklistDate(el.dataset.phaseStart);
+});
+document.getElementById("mapPath").addEventListener("click",(e)=>{
+  const el = e.target.closest("[data-phase-start]");
+  if(el) jumpToChecklistDate(el.dataset.phaseStart);
+});
+
+/* ==========================================================================
+   TABS + THEME
+   ========================================================================== */
+document.querySelectorAll(".tab-btn").forEach(btn=>{
+  btn.onclick=()=>{
+    document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+    document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById("view-"+btn.dataset.tab).classList.add("active");
+    localStorage.setItem(LS_TAB, btn.dataset.tab);
+    if(btn.dataset.tab==="rpg") renderRPG();
+    if(btn.dataset.tab==="map") renderMap();
+    if(btn.dataset.tab==="checklist") renderChecklist();
+    if(btn.dataset.tab==="dashboard") renderDashboard();
+  };
+});
+
+const themeToggle = document.getElementById("themeToggle");
+function applyTheme(t){
+  document.body.setAttribute("data-theme", t);
+  themeToggle.textContent = t==="dark" ? "☀️" : "🌙";
+  localStorage.setItem(LS_THEME, t);
+}
+themeToggle.onclick=()=>{
+  const cur = document.body.getAttribute("data-theme");
+  applyTheme(cur==="dark"?"light":"dark");
+  markDirty();
+};
+
+/* ==========================================================================
+   SYNC MODAL WIRING
+   ========================================================================== */
+const syncBadge = document.getElementById("syncBadge");
+const syncModalOverlay = document.getElementById("syncModalOverlay");
+const syncModalStatus = document.getElementById("syncModalStatus");
+
+function openSyncModal(){
+  document.getElementById("ghOwner").value = localStorage.getItem(GH_LS_OWNER) || "";
+  document.getElementById("ghRepo").value = localStorage.getItem(GH_LS_REPO) || "";
+  document.getElementById("ghToken").value = localStorage.getItem(GH_LS_TOKEN) || "";
+  syncModalStatus.textContent = ghConfigured() ? "Currently connected." : "Not connected yet — data is local-only.";
+  syncModalOverlay.classList.add("open");
+}
+syncBadge.onclick = openSyncModal;
+document.getElementById("ghCloseBtn").onclick = ()=> syncModalOverlay.classList.remove("open");
+syncModalOverlay.onclick = (e)=>{ if(e.target===syncModalOverlay) syncModalOverlay.classList.remove("open"); };
+
+document.getElementById("ghDisconnectBtn").onclick = ()=>{
+  localStorage.removeItem(GH_LS_TOKEN);
+  localStorage.removeItem(GH_LS_OWNER);
+  localStorage.removeItem(GH_LS_REPO);
+  localStorage.removeItem(GH_LS_SHA);
+  updateSyncBadge();
+  syncModalStatus.textContent = "Disconnected. Data will stay local to this browser only.";
+};
+
+document.getElementById("ghConnectBtn").onclick = async ()=>{
+  const owner = document.getElementById("ghOwner").value.trim();
+  const repo = document.getElementById("ghRepo").value.trim();
+  const token = document.getElementById("ghToken").value.trim();
+  if(!owner || !repo || !token){
+    syncModalStatus.textContent = "Please fill in all three fields.";
+    return;
+  }
+  localStorage.setItem(GH_LS_OWNER, owner);
+  localStorage.setItem(GH_LS_REPO, repo);
+  localStorage.setItem(GH_LS_TOKEN, token);
+  localStorage.removeItem(GH_LS_SHA);
+  syncModalStatus.textContent = "Connecting…";
+  try{
+    const remote = await ghFetchFile();
+    if(remote){
+      applySyncPayload(remote);
+      syncModalStatus.textContent = "✅ Connected — loaded existing data from GitHub.";
+    } else {
+      await ghPutFile(buildSyncPayload(), "Initialize study tracker data");
+      syncModalStatus.textContent = "✅ Connected — created study-tracker-data.json in your repo.";
+    }
+    updateSyncBadge("synced");
+    renderChecklist(); renderDashboard();
+  }catch(e){
+    console.error(e);
+    syncModalStatus.textContent = "❌ " + e.message;
+    updateSyncBadge("error", e.message);
+  }
+};
+
+/* ==========================================================================
+   INIT
+   ========================================================================== */
+(function init(){
+  applyTheme(localStorage.getItem(LS_THEME) || "light");
+  const savedTab = localStorage.getItem(LS_TAB) || "dashboard";
+
+  const speedSelect = document.getElementById("speedSelect");
+  speedSelect.value = localStorage.getItem(LS_SPEED) || "1";
+  speedSelect.onchange = ()=>{
+    localStorage.setItem(LS_SPEED, speedSelect.value);
+    markDirty();
+    renderDashboard();
+    renderChecklist();
+  };
+
+  const tabBtn = document.querySelector(`.tab-btn[data-tab="${savedTab}"]`);
+  if(tabBtn) tabBtn.click(); else renderDashboard();
+  renderChecklist();
+  renderDashboard();
+  updateSyncBadge();
+  initialCloudLoad();
+})();
+</script>
+</body>
+</html>
