@@ -84,6 +84,26 @@ button{font-family:var(--font-body); cursor:pointer;}
   width:100%; border:1px solid var(--line); border-radius:9px; padding:10px; font-size:13px;
   background:var(--paper); color:var(--ink); font-family:var(--font-body);
 }
+.syl-group{margin-bottom:16px;}
+.syl-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; cursor:pointer;}
+.syl-head-left{display:flex; align-items:center; gap:8px;}
+.syl-title{font-weight:700; font-size:13.5px;}
+.syl-count{font-size:11px; color:var(--ink-soft); font-family:var(--font-mono);}
+.syl-chevron{font-size:11px; color:var(--ink-soft); transition:transform .15s;}
+.syl-chevron.collapsed{transform:rotate(-90deg);}
+.syl-items{display:flex; flex-direction:column;}
+.syl-items.collapsed{display:none;}
+.date-badge{
+  font-size:9.5px; font-family:var(--font-mono); color:var(--ink-soft); background:var(--paper);
+  border:1px solid var(--line); border-radius:5px; padding:1px 5px;
+}
+.subtabbar{display:flex; gap:6px; margin-bottom:12px;}
+.subtab-btn{
+  flex:1; border:1px solid var(--line); background:var(--paper-panel); color:var(--ink-soft);
+  padding:8px 6px; border-radius:9px; font-weight:600; font-size:12.5px;
+}
+.subtab-btn.active{background:var(--ink); color:var(--paper); border-color:var(--ink);}
+[data-theme="dark"] .subtab-btn.active{background:var(--accent); color:var(--accent-ink); border-color:var(--accent);}
 
 /* ============ TABS ============ */
 .tabbar{
@@ -185,7 +205,7 @@ button{font-family:var(--font-body); cursor:pointer;}
   border:1px solid var(--line); border-radius:8px; padding:8px; font-size:12.5px; background:var(--paper);
   color:var(--ink); font-family:var(--font-body);
 }
-.add-form input[name="name"]{flex:1; min-width:120px;}
+.add-form input[name="itemName"]{flex:1; min-width:120px;}
 .add-form input[name="hours"]{width:70px;}
 
 /* ============ RPG TAB ============ */
@@ -250,7 +270,6 @@ button{font-family:var(--font-body); cursor:pointer;}
 <div class="topbar">
   <div class="brand">
     <span class="title">📚 Group 2 Grind</span>
-    <span class="sub" id="countdownLabel">—</span>
   </div>
   <div style="display:flex; align-items:center; gap:8px;">
     <button class="sync-badge" id="syncBadge" title="Sync status">💻 Local only</button>
@@ -297,12 +316,27 @@ button{font-family:var(--font-body); cursor:pointer;}
 <div class="tabbar">
   <button class="tab-btn active" data-tab="dashboard">⏱ Dashboard</button>
   <button class="tab-btn" data-tab="checklist">✅ Checklist</button>
+  <button class="tab-btn" data-tab="syllabus">📖 Syllabus</button>
   <button class="tab-btn" data-tab="rpg">⚔️ RPG</button>
   <button class="tab-btn" data-tab="map">🗺 Quest Map</button>
 </div>
 
 <!-- ===================== DASHBOARD ===================== -->
 <div class="view active" id="view-dashboard">
+
+  <div class="card" id="countdownCard">
+    <h2>Days Left</h2>
+    <div style="display:flex; gap:10px; margin-top:8px;">
+      <div style="flex:1; text-align:center; padding:12px 6px; background:var(--paper); border:1px solid var(--line); border-radius:12px;">
+        <div style="font-family:var(--font-mono); font-size:32px; font-weight:700;" id="cdAuditNum">—</div>
+        <div class="muted" style="margin-top:2px;">days to Audit & Ethics</div>
+      </div>
+      <div style="flex:1; text-align:center; padding:12px 6px; background:var(--paper); border:1px solid var(--line); border-radius:12px;">
+        <div style="font-family:var(--font-mono); font-size:32px; font-weight:700;" id="cdFmSmNum">—</div>
+        <div class="muted" style="margin-top:2px;">days to FM & SM</div>
+      </div>
+    </div>
+  </div>
 
   <div class="card">
     <h2>Study Timer</h2>
@@ -370,10 +404,53 @@ button{font-family:var(--font-body); cursor:pointer;}
         <option value="SM">SM</option>
         <option value="Revision">Revision</option>
       </select>
-      <input type="text" name="name" placeholder="Item name" required>
+      <input type="text" name="itemName" placeholder="Item name" required>
       <input type="number" name="hours" placeholder="hrs" step="0.1" min="0.1" required>
       <button type="submit" class="btn btn-log" style="padding:8px 12px;">+ Add</button>
     </form>
+  </div>
+</div>
+
+<!-- ===================== SYLLABUS ===================== -->
+<div class="view" id="view-syllabus">
+  <div class="card">
+    <h2 style="margin-bottom:2px;">Full Syllabus</h2>
+    <div class="muted" style="margin-bottom:12px;">
+      Everything across every day, in one place. Ticking something here ticks the exact same
+      item on its scheduled day in the Checklist tab — they're the same data, not a copy.
+    </div>
+
+    <div class="muted" style="margin-bottom:6px; font-weight:600;">Add something you skipped or forgot</div>
+    <form class="add-form" id="syllabusAddForm">
+      <select name="subject">
+        <option value="Audit">Audit</option>
+        <option value="FM">FM</option>
+        <option value="SM">SM</option>
+        <option value="Revision">Revision</option>
+      </select>
+      <input type="text" name="itemName" placeholder="Item name" required>
+      <input type="number" name="hours" placeholder="hrs" step="0.1" min="0.1" required>
+      <input type="date" name="date" min="2026-08-11" max="2026-09-12">
+      <button type="submit" class="btn btn-log" style="padding:8px 12px;">+ Add</button>
+    </form>
+    <div class="muted" style="margin-top:6px; margin-bottom:16px; font-size:11px;">
+      Leave the date blank to add it as <b>unscheduled</b> — it'll show up here and count toward your
+      subject totals, but won't land on any specific day until you edit it in.
+    </div>
+
+    <div class="subtabbar">
+      <button class="subtab-btn syl-subtab active" data-subject="Audit">Audit</button>
+      <button class="subtab-btn syl-subtab" data-subject="FM">FM</button>
+      <button class="subtab-btn syl-subtab" data-subject="SM">SM</button>
+      <button class="subtab-btn syl-subtab" data-subject="Revision">Revision</button>
+    </div>
+
+    <div style="display:flex; align-items:center; justify-content:flex-end; margin-bottom:6px;">
+      <label style="display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--ink-soft); font-weight:600;">
+        <input type="checkbox" id="hideDoneToggle"> Hide completed
+      </label>
+    </div>
+    <div id="syllabusGroups"></div>
   </div>
 </div>
 
@@ -608,6 +685,10 @@ const LS_SESSIONS = "gg_sessions";
 const LS_THEME = "gg_theme";
 const LS_TAB = "gg_tab";
 const LS_SPEED = "gg_speed";
+function getSpeedSetting(){
+  try{ return localStorage.getItem(LS_SPEED) || "1"; }
+  catch(e){ return "1"; } // storage blocked — just fall back silently for a read-only helper
+}
 
 function loadSchedule(){
   try{
@@ -615,15 +696,29 @@ function loadSchedule(){
     if(raw){ const parsed = JSON.parse(raw); if(parsed.version===3) return parsed; }
   }catch(e){}
   const fresh = generateSchedule();
-  localStorage.setItem(LS_SCHEDULE, JSON.stringify(fresh));
+  try{ localStorage.setItem(LS_SCHEDULE, JSON.stringify(fresh)); }
+  catch(e){ console.error("Initial schedule write failed (storage may be blocked in this environment):", e); }
   return fresh;
 }
-function saveSchedule(state){ localStorage.setItem(LS_SCHEDULE, JSON.stringify(state)); }
+let storageWarned = false;
+function warnStorageBlocked(e){
+  console.error("Storage write failed:", e);
+  if(storageWarned) return; // don't spam alerts for every keystroke/click
+  storageWarned = true;
+  alert("This browser/preview is blocking local storage, so nothing can be saved here. This is common inside embedded previews (like Claude's chat) — please test on the actual hosted GitHub Pages link instead, where this won't happen.");
+}
+function saveSchedule(state){
+  try{ localStorage.setItem(LS_SCHEDULE, JSON.stringify(state)); }
+  catch(e){ warnStorageBlocked(e); }
+}
 
 function loadSessions(){
   try{ return JSON.parse(localStorage.getItem(LS_SESSIONS)) || []; }catch(e){ return []; }
 }
-function saveSessions(arr){ localStorage.setItem(LS_SESSIONS, JSON.stringify(arr)); }
+function saveSessions(arr){
+  try{ localStorage.setItem(LS_SESSIONS, JSON.stringify(arr)); }
+  catch(e){ warnStorageBlocked(e); }
+}
 
 let APP = loadSchedule();
 let SESSIONS = loadSessions();
@@ -642,14 +737,18 @@ const GH_LS_SHA   = "gg_gh_sha";
 const GH_PATH = "study-tracker-data.json";
 
 function ghConfigured(){
-  return !!(localStorage.getItem(GH_LS_TOKEN) && localStorage.getItem(GH_LS_OWNER) && localStorage.getItem(GH_LS_REPO));
+  try{
+    return !!(localStorage.getItem(GH_LS_TOKEN) && localStorage.getItem(GH_LS_OWNER) && localStorage.getItem(GH_LS_REPO));
+  }catch(e){ return false; } // storage blocked — treat as "not configured" rather than crashing every caller
 }
 function ghConfig(){
-  return {
-    token: localStorage.getItem(GH_LS_TOKEN),
-    owner: localStorage.getItem(GH_LS_OWNER),
-    repo: localStorage.getItem(GH_LS_REPO),
-  };
+  try{
+    return {
+      token: localStorage.getItem(GH_LS_TOKEN),
+      owner: localStorage.getItem(GH_LS_OWNER),
+      repo: localStorage.getItem(GH_LS_REPO),
+    };
+  }catch(e){ return {token:null, owner:null, repo:null}; }
 }
 function b64EncodeUnicode(str){ return btoa(unescape(encodeURIComponent(str))); }
 function b64DecodeUnicode(str){ return decodeURIComponent(escape(atob(str))); }
@@ -705,7 +804,7 @@ function buildSyncPayload(){
     sessions: SESSIONS,
     settings: {
       theme: document.body.getAttribute("data-theme"),
-      speed: localStorage.getItem(LS_SPEED) || "1",
+      speed: getSpeedSetting(),
     },
     updatedAt: new Date().toISOString()
   };
@@ -778,7 +877,7 @@ async function initialCloudLoad(){
     updateSyncBadge("error", e.message);
     // keep whatever was already loaded from local cache as a fallback
   }
-  renderChecklist(); renderDashboard();
+  renderChecklist(); renderDashboard(); renderSyllabus();
 }
 
 /* ==========================================================================
@@ -895,7 +994,7 @@ function renderTodayLog(){
   const mins = SESSIONS.filter(s=>s.date===today).reduce((s,x)=>s+x.minutes,0);
   document.getElementById("todayLog").textContent = `Today logged: ${Math.floor(mins/60)}h ${mins%60}m`;
 
-  const speed = parseFloat(localStorage.getItem(LS_SPEED) || "1");
+  const speed = parseFloat(getSpeedSetting());
   const checklistMins = SESSIONS.filter(s=>s.date===today && s.source==="checklist").reduce((s,x)=>s+x.minutes,0);
   const timerMins = mins - checklistMins;
   const realMins = Math.round(checklistMins/speed) + timerMins;
@@ -907,13 +1006,42 @@ function renderTodayLog(){
   }
 }
 
-function renderCountdown(){
-  const examAudit = parseD("2026-09-10");
+function daysBetween(dateStr){
+  const target = parseD(dateStr);
   const today0 = new Date(); today0.setHours(0,0,0,0);
-  const diff = Math.round((examAudit - today0)/86400000);
-  document.getElementById("countdownLabel").textContent =
-    diff>=0 ? `T-minus ${diff} day${diff===1?"":"s"} to Audit & Ethics` : "Exams in progress — good luck!";
+  return Math.round((target - today0)/86400000);
 }
+
+function renderCountdown(){
+  const auditDiff = daysBetween("2026-09-10");
+  const fmSmDiff = daysBetween("2026-09-12");
+  let label;
+  if(auditDiff > 0) label = `T-minus ${auditDiff} day${auditDiff===1?"":"s"} to Audit & Ethics`;
+  else if(auditDiff === 0) label = "🎓 Audit & Ethics is today — good luck!";
+  else if(fmSmDiff > 0) label = `T-minus ${fmSmDiff} day${fmSmDiff===1?"":"s"} to FM & SM`;
+  else if(fmSmDiff === 0) label = "🎓 FM & SM is today — good luck!";
+  else label = "🎉 Both exams done — well earned rest.";
+  // (top-bar countdown label removed — the Days Left card is the single source of truth now)
+
+  const cardEl = document.getElementById("countdownCard");
+  if(cardEl){
+    const auditBig = auditDiff > 0 ? auditDiff : (auditDiff===0?"Today":"Done");
+    const fmSmBig = fmSmDiff > 0 ? fmSmDiff : (fmSmDiff===0?"Today":"Done");
+    document.getElementById("cdAuditNum").textContent = auditBig;
+    document.getElementById("cdFmSmNum").textContent = fmSmBig;
+  }
+}
+
+// Keep the countdown accurate even if the tab is left open across midnight —
+// re-check once a minute rather than only on the next click/tab-switch.
+let lastCountdownDate = dstr(new Date());
+setInterval(()=>{
+  const nowDate = dstr(new Date());
+  if(nowDate !== lastCountdownDate){
+    lastCountdownDate = nowDate;
+    renderCountdown();
+  }
+}, 60000);
 
 function renderDashboard(){
   renderSubjectTable(); renderWeek(); renderSevenDay(); renderPhaseTable(); renderTodayLog(); renderCountdown();
@@ -947,7 +1075,7 @@ function renderChecklist(){
     bannerWrap.innerHTML = `<div class="day-banner complete">🎉 Day complete!</div>`;
   }
 
-  const speed = parseFloat(localStorage.getItem(LS_SPEED) || "1");
+  const speed = parseFloat(getSpeedSetting());
   const list = document.getElementById("itemList");
   if(items.length===0 && !(phase&&phase.exam)){
     list.innerHTML = `<div class="muted" style="padding:10px 4px;">No items yet — add one below.</div>`;
@@ -976,56 +1104,79 @@ function renderChecklist(){
 }
 function escapeHtml(s){ return s.replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 
+function toggleItemDone(id){
+  const found = findItem(id);
+  if(!found) return null;
+  const {ds, it} = found;
+  it.done = !it.done;
+  saveSchedule(APP);
+  if(it.done){
+    // Checking an item off auto-logs its hours as a session for that day,
+    // so the Dashboard's "logged" totals and XP move immediately without
+    // requiring a separate timer run for content you already watched.
+    SESSIONS.push({date:ds, minutes:Math.round(it.hours*60), source:"checklist", itemId:it.id});
+  } else {
+    // Unchecking removes only the auto-logged session tied to this item —
+    // any real timer sessions you logged that day are left untouched.
+    SESSIONS = SESSIONS.filter(s=>!(s.source==="checklist" && s.itemId===it.id));
+  }
+  saveSessions(SESSIONS);
+  markDirty();
+  return {ds, it};
+}
+function deleteItemById(id){
+  const found = findItem(id);
+  if(!found) return;
+  const {ds} = found;
+  APP.schedule[ds] = APP.schedule[ds].filter(x=>x.id!==id);
+  SESSIONS = SESSIONS.filter(s=>!(s.source==="checklist" && s.itemId===id));
+  saveSessions(SESSIONS);
+  saveSchedule(APP); markDirty();
+}
+function renameItemById(id, newName){
+  const found = findItem(id);
+  if(!found) return;
+  found.it.name = newName.trim();
+  saveSchedule(APP); markDirty();
+}
+function renderAllTabs(){
+  renderChecklist(); renderDashboard(); renderSyllabus();
+}
+
 document.getElementById("itemList").addEventListener("click",(e)=>{
   const btn = e.target.closest("[data-action]");
   if(!btn) return;
   const action = btn.dataset.action, id = btn.dataset.id;
-  const found = findItem(id);
-  if(!found) return;
-  const {ds, it} = found;
 
   if(action==="toggle"){
-    it.done = !it.done;
-    saveSchedule(APP);
-    if(it.done){
-      // Checking an item off auto-logs its hours as a session for that day,
-      // so the Dashboard's "logged" totals and XP move immediately without
-      // requiring a separate timer run for content you already watched.
-      SESSIONS.push({date:ds, minutes:Math.round(it.hours*60), source:"checklist", itemId:it.id});
-    } else {
-      // Unchecking removes only the auto-logged session tied to this item —
-      // any real timer sessions you logged that day are left untouched.
-      SESSIONS = SESSIONS.filter(s=>!(s.source==="checklist" && s.itemId===it.id));
-    }
-    saveSessions(SESSIONS);
-    markDirty();
+    const result = toggleItemDone(id);
+    if(!result) return;
     btn.classList.add("pop");
     setTimeout(()=>btn.classList.remove("pop"),200);
-    if(it.done){
+    if(result.it.done){
       const plus = document.createElement("div");
       plus.className="floatplus"; plus.textContent="+1 ✨";
       btn.closest(".item-row").appendChild(plus);
       setTimeout(()=>plus.remove(),800);
     }
-    renderChecklist(); renderDashboard();
+    renderAllTabs();
   } else if(action==="delete"){
-    APP.schedule[ds] = APP.schedule[ds].filter(x=>x.id!==id);
-    SESSIONS = SESSIONS.filter(s=>!(s.source==="checklist" && s.itemId===id));
-    saveSessions(SESSIONS);
-    saveSchedule(APP); markDirty(); renderChecklist(); renderDashboard();
+    deleteItemById(id);
+    renderAllTabs();
   } else if(action==="rename"){
-    const newName = prompt("Rename item:", it.name);
-    if(newName && newName.trim()){
-      it.name = newName.trim();
-      saveSchedule(APP); markDirty(); renderChecklist();
-    }
+    const found = findItem(id);
+    if(!found) return;
+    const newName = prompt("Rename item:", found.it.name);
+    if(newName && newName.trim()){ renameItemById(id, newName); renderAllTabs(); }
   }
 });
 
 document.getElementById("addForm").addEventListener("submit",(e)=>{
   e.preventDefault();
   const f = e.target;
-  const subject = f.subject.value, name = f.name.value.trim(), hours = parseFloat(f.hours.value);
+  const subject = f.querySelector('[name="subject"]').value;
+  const name = f.querySelector('[name="itemName"]').value.trim();
+  const hours = parseFloat(f.querySelector('[name="hours"]').value);
   if(!name || !hours) return;
   if(!APP.schedule[currentDate]) APP.schedule[currentDate] = [];
   const newId = currentDate+"-x"+Date.now();
@@ -1033,12 +1184,131 @@ document.getElementById("addForm").addEventListener("submit",(e)=>{
   saveSchedule(APP);
   markDirty();
   f.reset();
-  renderChecklist(); renderDashboard();
+  renderAllTabs();
 });
 
 document.getElementById("prevDay").onclick=()=>{ currentDate = dstr(addDays(parseD(currentDate),-1)); if(currentDate<"2026-08-11") currentDate="2026-08-11"; renderChecklist(); };
 document.getElementById("nextDay").onclick=()=>{ currentDate = dstr(addDays(parseD(currentDate),1)); if(currentDate>"2026-09-12") currentDate="2026-09-12"; renderChecklist(); };
 datePicker.onchange=()=>{ currentDate = datePicker.value; renderChecklist(); };
+
+/* ==========================================================================
+   SYLLABUS TAB — every item across every day, grouped by subject.
+   Reads/writes the exact same APP.schedule item objects as the Checklist tab,
+   via the shared toggleItemDone/deleteItemById/renameItemById above, so the
+   two views can never drift out of sync with each other.
+   ========================================================================== */
+const SYL_BACKLOG_KEY = "backlog"; // unscheduled items live under this pseudo-date
+const LS_SYL_SUBJECT = "gg_syllabus_subject";
+let syllabusSubject = "Audit";
+try{ syllabusSubject = localStorage.getItem(LS_SYL_SUBJECT) || "Audit"; }catch(e){ console.error(e); }
+
+function renderSyllabus(){
+  const container = document.getElementById("syllabusGroups");
+  if(!container) return; // syllabus tab not in DOM yet on first paint pass
+  const hideDone = document.getElementById("hideDoneToggle").checked;
+
+  const groups = {Audit:[], FM:[], SM:[], Revision:[]};
+  Object.keys(APP.schedule).forEach(ds=>{
+    APP.schedule[ds].forEach(it=>{
+      if(!groups[it.subject]) groups[it.subject] = [];
+      groups[it.subject].push({...it, ds});
+    });
+  });
+
+  document.querySelectorAll(".syl-subtab").forEach(btn=>{
+    btn.classList.toggle("active", btn.dataset.subject===syllabusSubject);
+  });
+
+  const items = (groups[syllabusSubject]||[]).sort((a,b)=> a.ds.localeCompare(b.ds));
+  const doneCount = items.filter(i=>i.done).length;
+  const doneHours = items.filter(i=>i.done).reduce((s,i)=>s+i.hours,0);
+  const totalHours = items.reduce((s,i)=>s+i.hours,0);
+  const visibleItems = hideDone ? items.filter(i=>!i.done) : items;
+
+  let html = `
+    <div class="syl-head" style="cursor:default;">
+      <div class="syl-head-left">
+        <span class="syl-title">${doneCount}/${items.length} done</span>
+        <span class="syl-count">(${doneHours.toFixed(1)}h / ${totalHours.toFixed(1)}h)</span>
+      </div>
+    </div>
+    <div class="progress-outer" style="height:8px; margin:4px 0 10px;">
+      <div class="progress-inner" style="width:${totalHours>0?(doneHours/totalHours*100):0}%"></div>
+    </div>
+    <div class="syl-items">
+      ${items.length===0 ? `<div class="muted" style="padding:6px 4px;">Nothing here yet.</div>` :
+        visibleItems.length===0 ? `<div class="muted" style="padding:6px 4px;">Nothing left here 🎉</div>` :
+        visibleItems.map(it=>{
+        const dateLabel = it.ds===SYL_BACKLOG_KEY ? "Unscheduled" : it.ds;
+        return `
+        <div class="item-row" data-id="${it.id}">
+          <div class="checkbox ${it.done?'done':''}" data-action="toggle" data-id="${it.id}">${it.done?'✓':''}</div>
+          <div class="item-body">
+            <div class="item-name ${it.done?'done':''}">${escapeHtml(it.name)}</div>
+            <div class="item-meta">
+              <span class="date-badge">${dateLabel}</span>
+              <span>${it.hours}h</span>
+            </div>
+          </div>
+          <div class="item-actions">
+            <button class="icon-btn" data-action="rename" data-id="${it.id}">✎</button>
+            <button class="icon-btn" data-action="delete" data-id="${it.id}">🗑</button>
+          </div>
+        </div>`;
+      }).join("")}
+    </div>`;
+
+  container.innerHTML = html;
+}
+
+document.querySelectorAll(".syl-subtab").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    syllabusSubject = btn.dataset.subject;
+    try{ localStorage.setItem(LS_SYL_SUBJECT, syllabusSubject); }catch(e){ warnStorageBlocked(e); }
+    renderSyllabus();
+  });
+});
+
+document.getElementById("syllabusGroups").addEventListener("click",(e)=>{
+  const btn = e.target.closest("[data-action]");
+  if(!btn) return;
+  const action = btn.dataset.action, id = btn.dataset.id;
+
+  if(action==="toggle"){
+    const result = toggleItemDone(id);
+    if(!result) return;
+    btn.classList.add("pop");
+    setTimeout(()=>btn.classList.remove("pop"),200);
+    renderAllTabs();
+  } else if(action==="delete"){
+    deleteItemById(id);
+    renderAllTabs();
+  } else if(action==="rename"){
+    const found = findItem(id);
+    if(!found) return;
+    const newName = prompt("Rename item:", found.it.name);
+    if(newName && newName.trim()){ renameItemById(id, newName); renderAllTabs(); }
+  }
+});
+
+document.getElementById("hideDoneToggle").addEventListener("change", renderSyllabus);
+
+document.getElementById("syllabusAddForm").addEventListener("submit",(e)=>{
+  e.preventDefault();
+  const f = e.target;
+  const subject = f.querySelector('[name="subject"]').value;
+  const name = f.querySelector('[name="itemName"]').value.trim();
+  const hours = parseFloat(f.querySelector('[name="hours"]').value);
+  const date = f.querySelector('[name="date"]').value || SYL_BACKLOG_KEY;
+  if(!name || !hours) return;
+  if(!APP.schedule[date]) APP.schedule[date] = [];
+  const newId = date+"-x"+Date.now();
+  APP.schedule[date].push({id:newId, subject, name, hours, done:false});
+  saveSchedule(APP);
+  markDirty();
+  f.reset();
+  renderAllTabs();
+});
 
 /* ==========================================================================
    RPG TAB
@@ -1114,11 +1384,12 @@ document.querySelectorAll(".tab-btn").forEach(btn=>{
     document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
     btn.classList.add("active");
     document.getElementById("view-"+btn.dataset.tab).classList.add("active");
-    localStorage.setItem(LS_TAB, btn.dataset.tab);
+    try{ localStorage.setItem(LS_TAB, btn.dataset.tab); }catch(e){ warnStorageBlocked(e); }
     if(btn.dataset.tab==="rpg") renderRPG();
     if(btn.dataset.tab==="map") renderMap();
     if(btn.dataset.tab==="checklist") renderChecklist();
     if(btn.dataset.tab==="dashboard") renderDashboard();
+    if(btn.dataset.tab==="syllabus") renderSyllabus();
   };
 });
 
@@ -1126,7 +1397,7 @@ const themeToggle = document.getElementById("themeToggle");
 function applyTheme(t){
   document.body.setAttribute("data-theme", t);
   themeToggle.textContent = t==="dark" ? "☀️" : "🌙";
-  localStorage.setItem(LS_THEME, t);
+  try{ localStorage.setItem(LS_THEME, t); }catch(e){ warnStorageBlocked(e); }
 }
 themeToggle.onclick=()=>{
   const cur = document.body.getAttribute("data-theme");
@@ -1184,7 +1455,7 @@ document.getElementById("ghConnectBtn").onclick = async ()=>{
       syncModalStatus.textContent = "✅ Connected — created study-tracker-data.json in your repo.";
     }
     updateSyncBadge("synced");
-    renderChecklist(); renderDashboard();
+    renderChecklist(); renderDashboard(); renderSyllabus();
   }catch(e){
     console.error(e);
     syncModalStatus.textContent = "❌ " + e.message;
@@ -1196,13 +1467,17 @@ document.getElementById("ghConnectBtn").onclick = async ()=>{
    INIT
    ========================================================================== */
 (function init(){
-  applyTheme(localStorage.getItem(LS_THEME) || "light");
-  const savedTab = localStorage.getItem(LS_TAB) || "dashboard";
+  let theme = "light", savedTab = "dashboard", savedSpeed = "1";
+  try{ theme = localStorage.getItem(LS_THEME) || "light"; }catch(e){ warnStorageBlocked(e); }
+  try{ savedTab = localStorage.getItem(LS_TAB) || "dashboard"; }catch(e){}
+  try{ savedSpeed = localStorage.getItem(LS_SPEED) || "1"; }catch(e){}
+
+  applyTheme(theme);
 
   const speedSelect = document.getElementById("speedSelect");
-  speedSelect.value = localStorage.getItem(LS_SPEED) || "1";
+  speedSelect.value = savedSpeed;
   speedSelect.onchange = ()=>{
-    localStorage.setItem(LS_SPEED, speedSelect.value);
+    try{ localStorage.setItem(LS_SPEED, speedSelect.value); }catch(e){ warnStorageBlocked(e); }
     markDirty();
     renderDashboard();
     renderChecklist();
@@ -1212,6 +1487,7 @@ document.getElementById("ghConnectBtn").onclick = async ()=>{
   if(tabBtn) tabBtn.click(); else renderDashboard();
   renderChecklist();
   renderDashboard();
+  renderSyllabus();
   updateSyncBadge();
   initialCloudLoad();
 })();
